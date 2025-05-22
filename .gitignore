@@ -1,0 +1,10 @@
+# python
+*.pyc
+
+# venv
+.venv
+activate_venv.sh
+
+# vscode
+.vscode
+
