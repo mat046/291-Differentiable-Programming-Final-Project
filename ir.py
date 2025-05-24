@@ -9,66 +9,66 @@ def generate_asdl_file():
     # and if it has an earlier modification date compared to ir.py
     # if so, don't bother to generate the file
 
- ADT("""
-    module floma {
-     func = FunctionDef ( string id, arg* args, stmt body, type? ret_type )
-          | ReverseDiff ( string id, string primal_func )
-          attributes  ( int? lineno )
+#  ADT("""
+#     module floma {
+#      func = FunctionDef ( string id, arg* args, stmt body, type? ret_type )
+#           | ReverseDiff ( string id, string primal_func )
+#           attributes  ( int? lineno )
      
-     stmt = CallStmt ( expr call )
-            attributes  ( int? lineno )
+#      stmt = CallStmt ( expr call )
+#             attributes  ( int? lineno )
 
-     expr = Var          ( string id )
-          | ConstFloat   ( float val )
-          | Call         ( string id, expr* args )
-          attributes     ( int? lineno, type? t )
+#      expr = Var          ( string id )
+#           | ConstFloat   ( float val )
+#           | Call         ( string id, expr* args )
+#           attributes     ( int? lineno, type? t )
 
-     arg  = Arg ( string id, type? t)
+#      arg  = Arg ( string id, type? t)
 
-     type = Float  ( )
-    }
-    """,
-    header= '',
-    ext_types = {},
-    memoize = [])
+#      type = Float  ( )
+#     }
+#     """,
+#     header= '',
+#     ext_types = {},
+#     memoize = [])
  
-ADT("""
-    module floma_diff {
-     func = FunctionDef ( string id, arg* args, stmt* body, type? ret_type )
-          | ReverseDiff ( string id, string primal_func )
-          attributes  ( int? lineno )
+    ADT("""
+     module floma_diff {
+          func = FunctionDef ( string id, arg* args, stmt* body, type? ret_type )
+               | ReverseDiff ( string id, string primal_func )
+               attributes  ( int? lineno )
 
-     stmt = Assign     ( expr target, expr val )
-          | Declare    ( string target, type t, expr? val )
-          | CallStmt   ( expr call )
-          attributes   ( int? lineno )
+          stmt = Assign     ( expr target, expr val )
+               | Declare    ( string target, type t, expr? val )
+               | CallStmt   ( expr call )
+               attributes   ( int? lineno )
 
-     expr = Var          ( string id )
-          | StructAccess ( expr struct, string member_id )
-          | ConstFloat   ( float val )
-          | BinaryOp     ( bin_op op, expr left, expr right )
-          | Call         ( string id, expr* args )
-          | ContExpr     ( arg a, type arg_type, string* captures, expr body )
-          attributes     ( int? lineno, type? t )
+          expr = Var          ( string id )
+               | StructAccess ( expr struct, string member_id )
+               | ConstFloat   ( float val )
+               | BinaryOp     ( bin_op op, expr left, expr right )
+               | Call         ( string id, expr* args )
+               | ContExpr     ( arg a, type arg_type, string* captures, expr body )
+               attributes     ( int? lineno, type? t )
 
-     arg  = Arg ( string id, type t )
+          arg  = Arg ( string id, type t )
 
-     type = Float  ( )
-          | Struct ( string id, struct_member* members, int? lineno )
-          | Diff   ( type t )
-          | Cont   ( type arg_type )
+          type = Float  ( )
+               | Struct ( string id, struct_member* members, int? lineno )
+               | Diff   ( type t )
+               | Cont   ( type arg_type )
 
-     struct_member = MemberDef ( string id, type t )
+          struct_member = MemberDef ( string id, type t )
 
-     bin_op = Add()
-          | Sub()
-          | Mul()
-          | Div()
-    }
-    """,
-    header= '',
-    ext_types = {},
-    memoize = [])
+          bin_op = Add()
+               | Sub()
+               | Mul()
+               | Div()
+     }
+     """,
+     header= '',
+     ext_types = {},
+     memoize = [])
 
 #     ADT("""
 #     module loma {

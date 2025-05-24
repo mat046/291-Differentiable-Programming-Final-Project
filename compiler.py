@@ -1,8 +1,8 @@
 import attrs
-# import autodiff
+import autodiff
 import ctypes
 from ctypes import CDLL
-# import check
+import check
 # import codegen_c
 # import codegen_ispc
 # import codegen_opencl
@@ -13,7 +13,7 @@ import shutil
 from subprocess import run
 import ir
 ir.generate_asdl_file()
-import _asdl.floma as floma_ir
+import _asdl.floma_diff as floma_diff_ir
 import numpy as np
 # import cl_utils
 import pathlib
@@ -21,44 +21,44 @@ import pathlib
 import platform
 import distutils.ccompiler
 
-# def loma_to_ctypes_type(t : floma_ir.type | floma_ir.arg,
+# def loma_to_ctypes_type(t : floma_diff_ir.type | floma_diff_ir.arg,
 #                         ctypes_structs : dict[str, ctypes.Structure]) -> ctypes.Structure:
 #     """ Given a loma type, maps to the corresponding ctypes type by
 #         looking up ctypes_structs
 #     """
 
 #     match t:
-#         case floma_ir.Arg():
-#             if isinstance(t.t, floma_ir.Array):
+#         case floma_diff_ir.Arg():
+#             if isinstance(t.t, floma_diff_ir.Array):
 #                 return loma_to_ctypes_type(t.t, ctypes_structs)
 #             else:
-#                 if t.i == floma_ir.Out():
+#                 if t.i == floma_diff_ir.Out():
 #                     return ctypes.POINTER(loma_to_ctypes_type(t.t, ctypes_structs))
 #                 else:
 #                     return loma_to_ctypes_type(t.t, ctypes_structs)
-#         case floma_ir.Int():
+#         case floma_diff_ir.Int():
 #             return ctypes.c_int
-#         case floma_ir.Float():
+#         case floma_diff_ir.Float():
 #             return ctypes.c_float
-#         case floma_ir.Array():
+#         case floma_diff_ir.Array():
 #             return ctypes.POINTER(loma_to_ctypes_type(t.t, ctypes_structs))
-#         case floma_ir.Struct():
+#         case floma_diff_ir.Struct():
 #             return ctypes_structs[t.id]
 #         case None:
 #             return None
 #         case _:
 #             assert False
 
-# def topo_sort_structs(structs : dict[str, floma_ir.Struct]):
+# def topo_sort_structs(structs : dict[str, floma_diff_ir.Struct]):
 #     sorted_structs_list = []
 #     traversed_struct = set()
 #     def traverse_structs(s):
 #         if s in traversed_struct:
 #             return
 #         for m in s.members:
-#             if isinstance(m.t, floma_ir.Struct) or isinstance(m.t, floma_ir.Array):
-#                 next_s = m.t if isinstance(m.t, floma_ir.Struct) else m.t.t
-#                 if isinstance(next_s, floma_ir.Struct):
+#             if isinstance(m.t, floma_diff_ir.Struct) or isinstance(m.t, floma_diff_ir.Array):
+#                 next_s = m.t if isinstance(m.t, floma_diff_ir.Struct) else m.t.t
+#                 if isinstance(next_s, floma_diff_ir.Struct):
 #                     traverse_structs(structs[next_s.id])
 #         sorted_structs_list.append(s)
 #         traversed_struct.add(s)
@@ -93,10 +93,19 @@ def compile(loma_code : str,
     # first parse the frontend code
     try:
         funcs = parser.parse(loma_code)
+        
+        # # next figure out the types related to differentiation
+        # structs, diff_structs, funcs = autodiff.resolve_diff_types(funcs)
+        
+        # # next check if the resulting code is valid, barring from the derivative code
+        # check.check_ir(structs, diff_structs, funcs, check_diff = False)
+
         # next figure out the types related to differentiation
-        structs, diff_structs, funcs = autodiff.resolve_diff_types(structs, funcs)
+        # structs, diff_structs, funcs = autodiff.resolve_diff_types(funcs)
+
         # next check if the resulting code is valid, barring from the derivative code
         check.check_ir(structs, diff_structs, funcs, check_diff = False)
+
     except error.UserError as e:
         if print_error:
             print('[Error] error found before automatic differentiation:')
