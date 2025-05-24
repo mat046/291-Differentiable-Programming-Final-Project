@@ -95,7 +95,7 @@ def compile(loma_code : str,
         funcs = parser.parse(loma_code)
 
         # next figure out the types related to differentiation
-        dfloat, funcs = autodiff.resolve_diff_types(funcs)
+        dfloat, funcs = autodiff.make_builtins(funcs)
 
         # next check if the resulting code is valid, barring from the derivative code
         check.check_ir(funcs, check_diff = False)

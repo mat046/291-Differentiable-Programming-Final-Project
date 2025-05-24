@@ -109,7 +109,7 @@ def replace_diff_types(func : floma_diff_ir.FunctionDef) -> floma_diff_ir.Functi
 
     return DiffTypeMutator().mutate_function(func)
 
-def resolve_diff_types(funcs : dict[str, floma_diff_ir.func]) -> \
+def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         tuple[floma_diff_ir.Struct, dict[str, floma_diff_ir.func]]:
     """ Convert floma_diff_ir to floma_diff_ir in preparation for
         automatic differentiation
@@ -125,25 +125,22 @@ def resolve_diff_types(funcs : dict[str, floma_diff_ir.func]) -> \
         The differential struct for an int is still an int.
     """
 
-    funcs_to_be_diffed = False
-    for f in funcs.values():
-        if isinstance(f, floma_diff_ir.ReverseDiff):
-            funcs_to_be_diffed = True
+    # funcs_to_be_diffed = False
+    # for f in funcs.values():
+    #     if isinstance(f, floma_diff_ir.ReverseDiff):
+    #         funcs_to_be_diffed = True
 
-    if not funcs_to_be_diffed:
-        return None, funcs
+    # if not funcs_to_be_diffed:
+    #     return None, funcs
 
-    dfloat = floma_diff_ir.Struct('_dfloat',
-                            [floma_diff_ir.MemberDef('val', floma_diff_ir.Float()),
-                             floma_diff_ir.MemberDef('dval', floma_diff_ir.Float())])
     # diff_structs['float'] = dfloat
     # diff_structs['int'] = floma_diff_ir.Int()
 
-    # # Replace all Diff types with their differential types in the code
-    # for f in funcs.values():
-    #     funcs[f.id] = replace_diff_types(diff_structs, f)
 
-    # Create a make__dfloat function
+    # --------------------------------------dfloat stuff-----------------------------------------------
+    dfloat = floma_diff_ir.Struct('_dfloat',
+                            [floma_diff_ir.MemberDef('val', floma_diff_ir.Float()),
+                             floma_diff_ir.MemberDef('dval', floma_diff_ir.Float())])
     funcs['make__dfloat'] = floma_diff_ir.FunctionDef(
             'make__dfloat',
             args = [floma_diff_ir.Arg('val', floma_diff_ir.Float()),
@@ -153,6 +150,10 @@ def resolve_diff_types(funcs : dict[str, floma_diff_ir.func]) -> \
                     floma_diff_ir.Assign(floma_diff_ir.StructAccess(floma_diff_ir.Var('ret'), 'dval'), floma_diff_ir.Var('dval')),
                     floma_diff_ir.Return(floma_diff_ir.Var('ret'))],
             ret_type = dfloat)
+    
+
+    # --------------------------- built in functions and derivatives ---------------------------------------------
+    # funcs['add'] = floma_diff()
 
     return dfloat, funcs
 
