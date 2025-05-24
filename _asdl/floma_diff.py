@@ -18,7 +18,7 @@ module floma_diff {
           | ConstFloat   ( float val )
           | BinaryOp     ( bin_op op, expr left, expr right )
           | Call         ( string id, expr* args )
-          | ContExpr     ( arg a, type arg_type, string* captures, expr body )
+          | ContExpr     ( arg a, expr* captures, expr? body )
           attributes     ( int? lineno, type? t )
 
      arg  = Arg ( string id, type t )
@@ -321,34 +321,30 @@ class Call(expr):
 @_attrs.define(frozen=True)
 class ContExpr(expr):
     a: arg
-    arg_type: type
-    captures: _Tuple[str] = _attrs.field(converter=_list_to_tuple)
-    body: expr
+    captures: _Tuple[expr] = _attrs.field(converter=_list_to_tuple)
+    body: _Optional[expr] = None
     lineno: _Optional[int] = None
     t: _Optional[type] = None
 
-    def __new__(cls, a, arg_type, captures, body, lineno=None, t=None):
+    def __new__(cls, a, captures, body=None, lineno=None, t=None):
         return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.a, arg):
             raise TypeError("ContExpr(...) argument 1: " +
                             "invalid instance of 'arg a'")
-        if not isinstance(self.arg_type, type):
-            raise TypeError("ContExpr(...) argument 2: " +
-                            "invalid instance of 'type arg_type'")
         if not (isinstance(self.captures, (tuple, list))
-                and all(isinstance(x, str) for x in self.captures)):
+                and all(isinstance(x, expr) for x in self.captures)):
+            raise TypeError("ContExpr(...) argument 2: " +
+                            "invalid instance of 'expr* captures'")
+        if not (self.body is None or isinstance(self.body, expr)):
             raise TypeError("ContExpr(...) argument 3: " +
-                            "invalid instance of 'string* captures'")
-        if not isinstance(self.body, expr):
-            raise TypeError("ContExpr(...) argument 4: " +
-                            "invalid instance of 'expr body'")
+                            "invalid instance of 'expr? body'")
         if not (self.lineno is None or isinstance(self.lineno, int)):
-            raise TypeError("ContExpr(...) argument 5: " +
+            raise TypeError("ContExpr(...) argument 4: " +
                             "invalid instance of 'int? lineno'")
         if not (self.t is None or isinstance(self.t, type)):
-            raise TypeError("ContExpr(...) argument 6: " +
+            raise TypeError("ContExpr(...) argument 5: " +
                             "invalid instance of 'type? t'")
 
 
