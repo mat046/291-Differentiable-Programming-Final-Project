@@ -85,8 +85,8 @@ class IRVisitor:
                 self.visit_const_float(node)
             # case floma_diff_ir.ConstInt():
             #     self.visit_const_int(node)
-            # case floma_diff_ir.BinaryOp():
-            #     self.visit_binary_op(node)
+            case floma_diff_ir.BinaryOp():
+                self.visit_binary_op(node)
             case floma_diff_ir.Call():
                 self.visit_call(node)
             case _:

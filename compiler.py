@@ -107,7 +107,7 @@ def compile(loma_code : str,
         raise e
     
     # next actually differentiate the functions
-    funcs = autodiff.differentiate(structs, diff_structs, funcs)
+    funcs = autodiff.differentiate(dfloat, funcs)
     try:
         # next check if the derivative code is valid
         check.check_ir(structs, diff_structs, funcs, check_diff = True)

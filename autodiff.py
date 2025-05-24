@@ -476,22 +476,25 @@ class CallFuncVisitor(irvisitor.IRVisitor):
             self.visit_expr(arg)
 
         # do nothing if it's built-in func
-        if node.id == 'sin' or \
-            node.id == 'cos' or \
-            node.id == 'sqrt' or \
-            node.id == 'pow' or \
-            node.id == 'exp' or \
-            node.id == 'log' or \
-            node.id == 'int2float' or \
-            node.id == 'float2int' or \
-            node.id == 'thread_id' or \
-            node.id == 'atomic_add':
-            return
+        # if node.id == 'sin' or \
+        #     node.id == 'cos' or \
+        #     node.id == 'sqrt' or \
+        #     node.id == 'pow' or \
+        #     node.id == 'exp' or \
+        #     node.id == 'log' or \
+        #     node.id == 'int2float' or \
+        #     node.id == 'float2int' or \
+        #     node.id == 'thread_id' or \
+        #     node.id == 'atomic_add':
+        #     return
+        match node.id:
+            case 'addf' | 'd_addf' | 'subf' | 'd_subf' | \
+                 'mulf' | 'd_mulf' | 'divf' | 'd_divf':
+                return
 
         self.called_func_ids.add(node.id)
 
-def differentiate(structs : dict[str, floma_diff_ir.Struct],
-                  diff_structs : dict[str, floma_diff_ir.Struct],
+def differentiate(dfloat : floma_diff_ir.Struct,
                   funcs : dict[str, floma_diff_ir.func]) -> dict[str, floma_diff_ir.func]:
     """ Given a list loma functions (funcs), replace all functions 
         that are marked as ForwardDiff and ReverseDiff with 
@@ -511,41 +514,27 @@ def differentiate(structs : dict[str, floma_diff_ir.Struct],
                 are replaced by the actual FunctionDef
     """
 
-    # Map functions to their forward/reverse versions
-    func_to_fwd = dict()
+    # Map functions to their differentiated versions
     func_to_rev = dict()
     for f in funcs.values():
-        if isinstance(f, floma_diff_ir.ForwardDiff):
-            func_to_fwd[f.primal_func] = f.id
-        elif isinstance(f, floma_diff_ir.ReverseDiff):
+        if isinstance(f, floma_diff_ir.ReverseDiff):
             func_to_rev[f.primal_func] = f.id
+    # do for built in functions as well
+    func_to_rev['addf'] = 'd_addf'
+    func_to_rev['subf'] = 'd_subf'
+    func_to_rev['mulf'] = 'd_mulf'
+    func_to_rev['divf'] = 'd_divf'
 
-    # Traverse: for each function that requires forward diff
-    # recursively having all called functions to require forward diff
+    # Traverse: for each function that requires reverse diff
+    # recursively having all called functions to require reverse diff
     # as well
-    visited_func = set(func_to_fwd.keys())
-    func_stack = list(func_to_fwd.keys())
-    while len(func_stack) > 0:
-        primal_func_id = func_stack.pop()
-        primal_func = funcs[primal_func_id]
-        if primal_func_id not in func_to_fwd:
-            fwd_func_id = '_d_fwd_' + primal_func_id
-            func_to_fwd[primal_func_id] = fwd_func_id
-            funcs[fwd_func_id] = floma_diff_ir.ForwardDiff(fwd_func_id, primal_func_id)
-        cfv = CallFuncVisitor()
-        cfv.visit_function(primal_func)
-        for f in cfv.called_func_ids:
-            if f not in visited_func:
-                visited_func.add(f)
-                func_stack.append(f)
-    # Do the same for reverse diff
     visited_func = set(func_to_rev.keys())
     func_stack = list(func_to_rev.keys())
     while len(func_stack) > 0:
         primal_func_id = func_stack.pop()
         primal_func = funcs[primal_func_id]
         if primal_func_id not in func_to_rev:
-            rev_func_id = '_d_rev_' + primal_func_id
+            rev_func_id = 'd_' + primal_func_id
             func_to_rev[primal_func_id] = rev_func_id
             funcs[rev_func_id] = floma_diff_ir.ReverseDiff(rev_func_id, primal_func_id)
         cfv = CallFuncVisitor()
@@ -556,15 +545,7 @@ def differentiate(structs : dict[str, floma_diff_ir.Struct],
                 func_stack.append(f)
 
     for f in funcs.values():
-        if isinstance(f, floma_diff_ir.ForwardDiff):
-            fwd_diff_func = forward_diff.forward_diff(\
-                f.id, structs, funcs, diff_structs,
-                funcs[f.primal_func], func_to_fwd)
-            funcs[f.id] = fwd_diff_func
-            import pretty_print
-            print(f'\nForward differentiation of function {f.id}:')
-            print(pretty_print.loma_to_str(fwd_diff_func))
-        elif isinstance(f, floma_diff_ir.ReverseDiff):
+        if isinstance(f, floma_diff_ir.ReverseDiff):
             rev_diff_func = reverse_diff.reverse_diff(\
                 f.id, structs, funcs, diff_structs,
                 funcs[f.primal_func], func_to_rev)
