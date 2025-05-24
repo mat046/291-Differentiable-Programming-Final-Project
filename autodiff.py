@@ -153,106 +153,110 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     
 
     # --------------------------- built in functions and derivatives ---------------------------------------------
+
+    def declare_ret(operation : floma_diff_ir.bin_op) -> floma_diff_ir.Declare:
+        decl = floma_diff_ir.Declare(
+            target='ret',
+            t=dfloat,
+            val=floma_diff_ir.Call(
+                'make__dfloat',
+                args=[
+                    floma_diff_ir.BinaryOp(
+                        op=operation,
+                        left=floma_diff_ir.StructAccess(
+                            struct=floma_diff_ir.Var(id='x', t=dfloat),
+                            member_id='val',
+                            t=floma_diff_ir.Float()
+                        ),
+                        right=floma_diff_ir.StructAccess(
+                            struct=floma_diff_ir.Var(id='y', t=dfloat),
+                            member_id='val',
+                            t=floma_diff_ir.Float()
+                        )
+                    ),
+                    floma_diff_ir.ConstFloat(0.0)
+                ]
+            )
+        )
+        return decl
+    
+    def adj_plus_equals(df : str, rhs : floma_diff_ir.expr) -> floma_diff_ir.Assign:
+        adj = floma_diff_ir.StructAccess(
+            struct=floma_diff_ir.Var(id=df, t=dfloat),
+            member_id='dval',
+            t=floma_diff_ir.Float()
+        )
+        plus_equls = floma_diff_ir.Assign(
+            target=adj,
+            val=floma_diff_ir.BinaryOp(
+                op=floma_diff_ir.Add(),
+                left=adj,
+                right=rhs
+            )
+        )
+        return plus_equls
+    
+    call_continuation = floma_diff_ir.CallStmt(
+                            floma_diff_ir.Call(
+                                id='k',
+                                args=[floma_diff_ir.Var('ret', t=dfloat)]
+                            )
+                        )
+    
+    bin_op_args = [
+        floma_diff_ir.Arg('x', floma_diff_ir.Float()),
+        floma_diff_ir.Arg('y', floma_diff_ir.Float())
+    ]
+
+    diff_bin_op_args = [
+        floma_diff_ir.Arg('x', dfloat),
+        floma_diff_ir.Arg('y', dfloat),
+        floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
+    ]
     
     # ADD FLOATS
     funcs['addf'] = floma_diff_ir.FunctionDef(
         id='addf',
-        args=[
-            floma_diff_ir.Arg('x', floma_diff_ir.Float()),
-            floma_diff_ir.Arg('y', floma_diff_ir.Float())
-        ],
+        args=bin_op_args,
         body=[
-            floma_diff_ir.BinaryOp(
-                floma_diff_ir.Add(),
-                floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
-                floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Add(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+                ),
             )
         ],
         ret_type=floma_diff_ir.Float()
     )
     funcs['d_addf'] = floma_diff_ir.FunctionDef(
         id='d_addf',
-        args=[
-            floma_diff_ir.Arg('x', dfloat),
-            floma_diff_ir.Arg('y', dfloat),
-            floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
-        ],
+        args=diff_bin_op_args,
         body=[
-            # ret = dfloat(x.val + y.val, 0)
-            floma_diff_ir.Declare(
-                target='ret',
-                t=floma_diff_ir.Struct,
-                val=floma_diff_ir.Call(
-                    'make__dfloat',
-                    args=[
-                        floma_diff_ir.BinaryOp(
-                            op=floma_diff_ir.Add(),
-                            left=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='x', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            ),
-                            right=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='y', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            )
-                        ),
-                        floma_diff_ir.ConstFloat(0.0)
-                    ]
-                )
-            ),
+            # ret = make__dfloat(x.val + y.val, 0)
+            declare_ret(floma_diff_ir.Add()),
 
             # k(ret)
-            floma_diff_ir.CallStmt(
-                floma_diff_ir.Call(
-                    id='k',
-                    args=[floma_diff_ir.Var('ret', t=dfloat)]
-                )
-            ),
+            call_continuation,
 
             # x.dval += ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='x', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='x', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.StructAccess(
+            adj_plus_equals(
+                df='x',
+                rhs=floma_diff_ir.StructAccess(
                         struct=floma_diff_ir.Var(id='ret', t=dfloat),
                         member_id='dval',
                         t=floma_diff_ir.Float()
                     )
-                )
             ),
 
             # y.dval += ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='y', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='y', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.StructAccess(
+            adj_plus_equals(
+                df='y',
+                rhs=floma_diff_ir.StructAccess(
                         struct=floma_diff_ir.Var(id='ret', t=dfloat),
                         member_id='dval',
                         t=floma_diff_ir.Float()
                     )
-                )
             )
         ],
         ret_type=None
@@ -261,102 +265,50 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # SUB FLOATS
     funcs['subf'] = floma_diff_ir.FunctionDef(
         id='subf',
-        args=[
-            floma_diff_ir.Arg('x', floma_diff_ir.Float()),
-            floma_diff_ir.Arg('y', floma_diff_ir.Float())
-        ],
+        args=bin_op_args,
         body=[
-            floma_diff_ir.BinaryOp(
-                floma_diff_ir.Sub(),
-                floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
-                floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+            floma_diff_ir.Return(
+                floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Sub(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+                )
             )
         ],
         ret_type=floma_diff_ir.Float()
     )
     funcs['d_subf'] = floma_diff_ir.FunctionDef(
         id='d_subf',
-        args=[
-            floma_diff_ir.Arg('x', dfloat),
-            floma_diff_ir.Arg('y', dfloat),
-            floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
-        ],
+        args=bin_op_args,
         body=[
-            # ret = dfloat(x.val - y.val, 0)
-            floma_diff_ir.Declare(
-                target='ret',
-                t=floma_diff_ir.Struct,
-                val=floma_diff_ir.Call(
-                    'make__dfloat',
-                    args=[
-                        floma_diff_ir.BinaryOp(
-                            op=floma_diff_ir.Sub(),
-                            left=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='x', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            ),
-                            right=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='y', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            )
-                        ),
-                        floma_diff_ir.ConstFloat(0.0)
-                    ]
-                )
-            ),
+            # ret = make__dfloat(x.val - y.val, 0)
+            declare_ret(floma_diff_ir.Sub()),
 
             # k(ret)
-            floma_diff_ir.CallStmt(
-                floma_diff_ir.Call(
-                    id='k',
-                    args=[floma_diff_ir.Var('ret', t=dfloat)]
-                )
-            ),
+            call_continuation,
 
             # x.dval += ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='x', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='x', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.StructAccess(
+            adj_plus_equals(
+                df='x',
+                rhs=floma_diff_ir.StructAccess(
                         struct=floma_diff_ir.Var(id='ret', t=dfloat),
                         member_id='dval',
                         t=floma_diff_ir.Float()
                     )
-                )
             ),
 
             # y.dval -= ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='y', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Sub(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='y', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='ret', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
+            adj_plus_equals(
+                df='y',
+                rhs=floma_diff_ir.BinaryOp(
+                        op=floma_diff_ir.Mul(),
+                        left=floma_diff_ir.ConstFloat(-1.0),
+                        right=floma_diff_ir.StructAccess(
+                            struct=floma_diff_ir.Var(id='ret', t=dfloat),
+                            member_id='dval',
+                            t=floma_diff_ir.Float()
+                        )
                     )
-                )
             )
         ],
         ret_type=None
@@ -365,75 +317,32 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # MUL FLOATS
     funcs['mulf'] = floma_diff_ir.FunctionDef(
         id='mulf',
-        args=[
-            floma_diff_ir.Arg('x', floma_diff_ir.Float()),
-            floma_diff_ir.Arg('y', floma_diff_ir.Float())
-        ],
+        args=bin_op_args,
         body=[
-            floma_diff_ir.BinaryOp(
-                floma_diff_ir.Mul(),
-                floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
-                floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+            floma_diff_ir.Return(
+                floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Mul(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+                )
             )
         ],
         ret_type=floma_diff_ir.Float()
     )
     funcs['d_mulf'] = floma_diff_ir.FunctionDef(
         id='d_mulf',
-        args=[
-            floma_diff_ir.Arg('x', dfloat),
-            floma_diff_ir.Arg('y', dfloat),
-            floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
-        ],
+        args=diff_bin_op_args,
         body=[
-            # ret = dfloat(x.val * y.val, 0)
-            floma_diff_ir.Declare(
-                target='ret',
-                t=floma_diff_ir.Struct,
-                val=floma_diff_ir.Call(
-                    'make__dfloat',
-                    args=[
-                        floma_diff_ir.BinaryOp(
-                            op=floma_diff_ir.Mul(),
-                            left=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='x', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            ),
-                            right=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='y', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            )
-                        ),
-                        floma_diff_ir.ConstFloat(0.0)
-                    ]
-                )
-            ),
+            # ret = make__dfloat(x.val * y.val, 0)
+            declare_ret(floma_diff_ir.Mul()),
 
             # k(ret)
-            floma_diff_ir.CallStmt(
-                floma_diff_ir.Call(
-                    id='k',
-                    args=[floma_diff_ir.Var('ret', t=dfloat)]
-                )
-            ),
+            call_continuation,
 
             # x.dval += y.val * ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='x', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='x', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.BinaryOp(
+            adj_plus_equals(
+                df='x',
+                rhs=floma_diff_ir.BinaryOp(
                         op=floma_diff_ir.Mul(),
                         left=floma_diff_ir.StructAccess(
                             struct=floma_diff_ir.Var('y', t=dfloat),
@@ -446,24 +355,12 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                             t=floma_diff_ir.Float()
                         )
                     )
-                )
             ),
 
             # y.dval += x.val * ret.dval
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='y', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='y', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.BinaryOp(
+            adj_plus_equals(
+                df='y',
+                rhs=floma_diff_ir.BinaryOp(
                         op=floma_diff_ir.Mul(),
                         left=floma_diff_ir.StructAccess(
                             struct=floma_diff_ir.Var('x', t=dfloat),
@@ -476,7 +373,6 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                             t=floma_diff_ir.Float()
                         )
                     )
-                )
             )
         ],
         ret_type=None
@@ -485,75 +381,32 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # DIV FLOATS
     funcs['divf'] = floma_diff_ir.FunctionDef(
         id='divf',
-        args=[
-            floma_diff_ir.Arg('x', floma_diff_ir.Float()),
-            floma_diff_ir.Arg('y', floma_diff_ir.Float())
-        ],
+        args=bin_op_args,
         body=[
-            floma_diff_ir.BinaryOp(
-                floma_diff_ir.Div(),
-                floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
-                floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+            floma_diff_ir.Return(
+                floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Div(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Float()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Float())
+                )
             )
         ],
         ret_type=floma_diff_ir.Float()
     )
     funcs['d_divf'] = floma_diff_ir.FunctionDef(
         id='d_divf',
-        args=[
-            floma_diff_ir.Arg('x', dfloat),
-            floma_diff_ir.Arg('y', dfloat),
-            floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
-        ],
+        args=diff_bin_op_args,
         body=[
-            # ret = dfloat(x.val / y.val, 0)
-            floma_diff_ir.Declare(
-                target='ret',
-                t=floma_diff_ir.Struct,
-                val=floma_diff_ir.Call(
-                    'make__dfloat',
-                    args=[
-                        floma_diff_ir.BinaryOp(
-                            op=floma_diff_ir.Div(),
-                            left=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='x', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            ),
-                            right=floma_diff_ir.StructAccess(
-                                struct=floma_diff_ir.Var(id='y', t=dfloat),
-                                member_id='val',
-                                t=floma_diff_ir.Float()
-                            )
-                        ),
-                        floma_diff_ir.ConstFloat(0.0)
-                    ]
-                )
-            ),
+            # ret = make__dfloat(x.val / y.val, 0)
+            declare_ret(floma_diff_ir.Div()),
 
             # k(ret)
-            floma_diff_ir.CallStmt(
-                floma_diff_ir.Call(
-                    id='k',
-                    args=[floma_diff_ir.Var('ret', t=dfloat)]
-                )
-            ),
+            call_continuation,
 
             # x.dval += ret.dval / y.val
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='x', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='x', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
-                    right=floma_diff_ir.BinaryOp(
+            adj_plus_equals(
+                df='x',
+                rhs=floma_diff_ir.BinaryOp(
                         op=floma_diff_ir.Div(),
                         left=floma_diff_ir.StructAccess(
                             struct=floma_diff_ir.Var(id='ret', t=dfloat),
@@ -566,25 +419,18 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                             t=floma_diff_ir.Float()
                         )
                     )
-                )
             ),
 
-            # y.dval -= x.val * ret.dval / ((y.val)^2)
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.StructAccess(
-                    struct=floma_diff_ir.Var(id='y', t=dfloat),
-                    member_id='dval',
-                    t=floma_diff_ir.Float()
-                ),
-                val=floma_diff_ir.BinaryOp(
-                    op=floma_diff_ir.Add(),
-                    left=floma_diff_ir.StructAccess(
-                        struct=floma_diff_ir.Var(id='x', t=dfloat),
-                        member_id='dval',
-                        t=floma_diff_ir.Float()
-                    ),
+            # y.dval -= ret.dval * x.val / ((y.val)^2)
+            adj_plus_equals(
+                df='y',
+                rhs=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Mul(),
+                    left=floma_diff_ir.ConstFloat(-1.0),
                     right=floma_diff_ir.BinaryOp(
+                        # /
                         op=floma_diff_ir.Div(),
+                        # ret.dval * x.val
                         left=floma_diff_ir.BinaryOp(
                             op=floma_diff_ir.Mul(),
                             left=floma_diff_ir.StructAccess(
@@ -592,12 +438,13 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                                 member_id='dval',
                                 t=floma_diff_ir.Float()
                             ),
-                            left=floma_diff_ir.StructAccess(
+                            right=floma_diff_ir.StructAccess(
                                 struct=floma_diff_ir.Var(id='x', t=dfloat),
                                 member_id='val',
                                 t=floma_diff_ir.Float()
                             ),
                         ),
+                        # ((y.val)^2)
                         right=floma_diff_ir.BinaryOp(
                             floma_diff_ir.Mul(),
                             left=floma_diff_ir.StructAccess(
