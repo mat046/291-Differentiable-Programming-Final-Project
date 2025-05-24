@@ -223,8 +223,39 @@ def reverse_diff(#diff_func_id : str,
     # HW2 happens here. Modify the following IR mutators to perform
     # reverse differentiation.
 
+    class ParentChildCallPair:
+        """
+        Keeps track of which function-call instances call other function-call instances
+
+        Example:
+        add(sub(x,y),mul(x,y))
+        ->
+        (call pair for the add and sub function calls)
+        {
+            child=<sub call instance>
+            parent=<add call instance>
+            arg_idx=0  # sub is the 0th index in the add call
+        }
+        """
+        def __init__(self):
+            self.child : floma_diff_ir.Call
+            self.parent : floma_diff_ir.Call
+            self.arg_idx : int
+
     # Apply the differentiation.
     class RevDiffMutator(irmutator.IRMutator):
+        def __init__(self):
+            # The mutated function body will turn into a series of nested functions (lambdas)
+            # self.head is the 'front', or outer-most function call
+            self.head_ : floma_diff_ir.Call
+
+            self.call_pairs_ : list[ParentChildCallPair]
+
+            # The nested lambda functions will need to close on variables from outer scopes
+            # Inner lambdas will have to close on the parameters from outer lambdas
+            # This helps us keep track of the order in which lambdas are nested
+            self.conts_ : list[floma_diff_ir.ContExpr] = []
+
         def mutate_function_def(self, node):
             # Mutate arguments
             new_args = []
@@ -269,8 +300,8 @@ def reverse_diff(#diff_func_id : str,
         #     return super().mutate_ifelse(node)
 
         def mutate_call_stmt(self, node):
-            # HW3: TODO
-            return super().mutate_call_stmt(node)
+            new_body = self.mutate_expr(node.call)
+            return new_body
 
         def mutate_const_float(self, node):
             # HW2: TODO
