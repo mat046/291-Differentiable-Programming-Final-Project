@@ -52,16 +52,13 @@ class func:
         assert False, "Cannot instantiate func"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class FunctionDef(func):
     id: str
     args: _Tuple[arg] = _attrs.field(converter=_list_to_tuple)
     body: _Tuple[stmt] = _attrs.field(converter=_list_to_tuple)
     ret_type: _Optional[type] = None
     lineno: _Optional[int] = None
-
-    def __new__(cls, id, args, body, ret_type=None, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -83,14 +80,11 @@ class FunctionDef(func):
                             "invalid instance of 'int? lineno'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class ReverseDiff(func):
     id: str
     primal_func: str
     lineno: _Optional[int] = None
-
-    def __new__(cls, id, primal_func, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -110,14 +104,11 @@ class stmt:
         assert False, "Cannot instantiate stmt"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Assign(stmt):
     target: expr
     val: expr
     lineno: _Optional[int] = None
-
-    def __new__(cls, target, val, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.target, expr):
@@ -131,15 +122,12 @@ class Assign(stmt):
                             "invalid instance of 'int? lineno'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Declare(stmt):
     target: str
     t: type
     val: _Optional[expr] = None
     lineno: _Optional[int] = None
-
-    def __new__(cls, target, t, val=None, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.target, str):
@@ -156,13 +144,10 @@ class Declare(stmt):
                             "invalid instance of 'int? lineno'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class CallStmt(stmt):
     call: expr
     lineno: _Optional[int] = None
-
-    def __new__(cls, call, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.call, expr):
@@ -173,13 +158,10 @@ class CallStmt(stmt):
                             "invalid instance of 'int? lineno'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Return(stmt):
     val: expr
     lineno: _Optional[int] = None
-
-    def __new__(cls, val, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.val, expr):
@@ -196,14 +178,11 @@ class expr:
         assert False, "Cannot instantiate expr"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Var(expr):
     id: str
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, id, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -217,15 +196,12 @@ class Var(expr):
                             "invalid instance of 'type? t'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class StructAccess(expr):
     struct: expr
     member_id: str
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, struct, member_id, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.struct, expr):
@@ -242,14 +218,11 @@ class StructAccess(expr):
                             "invalid instance of 'type? t'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class ConstFloat(expr):
     val: float
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, val, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.val, float):
@@ -263,16 +236,13 @@ class ConstFloat(expr):
                             "invalid instance of 'type? t'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class BinaryOp(expr):
     op: bin_op
     left: expr
     right: expr
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, op, left, right, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.op, bin_op):
@@ -292,15 +262,12 @@ class BinaryOp(expr):
                             "invalid instance of 'type? t'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Call(expr):
     id: str
     args: _Tuple[expr] = _attrs.field(converter=_list_to_tuple)
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, id, args, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -318,16 +285,13 @@ class Call(expr):
                             "invalid instance of 'type? t'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class ContExpr(expr):
     a: arg
     captures: _Tuple[expr] = _attrs.field(converter=_list_to_tuple)
     body: _Optional[expr] = None
     lineno: _Optional[int] = None
     t: _Optional[type] = None
-
-    def __new__(cls, a, captures, body=None, lineno=None, t=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.a, arg):
@@ -354,13 +318,10 @@ class arg:
         assert False, "Cannot instantiate arg"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Arg(arg):
     id: str
     t: type
-
-    def __new__(cls, id, t):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -377,24 +338,18 @@ class type:
         assert False, "Cannot instantiate type"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Float(type):
-
-    def __new__(cls):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         pass
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Struct(type):
     id: str
     members: _Tuple[struct_member] = _attrs.field(converter=_list_to_tuple)
     lineno: _Optional[int] = None
-
-    def __new__(cls, id, members, lineno=None):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -409,12 +364,9 @@ class Struct(type):
                             "invalid instance of 'int? lineno'")
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Cont(type):
     arg_type: type
-
-    def __new__(cls, arg_type):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.arg_type, type):
@@ -428,13 +380,10 @@ class struct_member:
         assert False, "Cannot instantiate struct_member"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class MemberDef(struct_member):
     id: str
     t: type
-
-    def __new__(cls, id, t):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         if not isinstance(self.id, str):
@@ -451,41 +400,29 @@ class bin_op:
         assert False, "Cannot instantiate bin_op"
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Add(bin_op):
 
-    def __new__(cls):
-        return super().__new__(cls)
-
     def __attrs_post_init__(self):
         pass
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Sub(bin_op):
 
-    def __new__(cls):
-        return super().__new__(cls)
-
     def __attrs_post_init__(self):
         pass
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Mul(bin_op):
 
-    def __new__(cls):
-        return super().__new__(cls)
-
     def __attrs_post_init__(self):
         pass
 
 
-@_attrs.define(frozen=True)
+@_attrs.define
 class Div(bin_op):
-
-    def __new__(cls):
-        return super().__new__(cls)
 
     def __attrs_post_init__(self):
         pass

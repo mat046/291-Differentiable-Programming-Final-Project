@@ -236,7 +236,7 @@ class _BuildClasses:
         # optional inheritance from a super-class
         super_str = f"({super_cls})" if super_cls else ""
         # Define the class name and set up `lines` as an accumulator
-        lines = [f"@_attrs.define(frozen=True)",
+        lines = [f"@_attrs.define", #(frozen=True)",
                  f"class {name}{super_str}:"]
         if len(fields) == 0:
             #lines.append("    pass")
@@ -250,8 +250,8 @@ class _BuildClasses:
             lines += ["    _memo_cache = dict()",
                       "    "]
 
-        lines += self.build_new_fn(fields, name)
-        lines += ["    "]
+        # lines += self.build_new_fn(fields, name)
+        # lines += ["    "]
         lines += self.build_init_fn(fields, name)
 
         self._classes.append("\n".join(lines))
