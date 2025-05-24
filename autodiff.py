@@ -1,9 +1,9 @@
 import ir
 ir.generate_asdl_file()
 import _asdl.floma_diff as floma_diff_ir
-# import irmutator
+import irmutator
 # import forward_diff
-# import reverse_diff
+import reverse_diff
 import irvisitor
 
 # def type_to_diff_type(diff_structs : dict[str, floma_diff_ir.Struct],
@@ -546,9 +546,7 @@ def differentiate(dfloat : floma_diff_ir.Struct,
 
     for f in funcs.values():
         if isinstance(f, floma_diff_ir.ReverseDiff):
-            rev_diff_func = reverse_diff.reverse_diff(\
-                f.id, structs, funcs, diff_structs,
-                funcs[f.primal_func], func_to_rev)
+            rev_diff_func = reverse_diff.reverse_diff(dfloat, funcs[f.primal_func], func_to_rev)
             funcs[f.id] = rev_diff_func
             import pretty_print
             print(f'\nReverse differentiation of function {f.id}:')

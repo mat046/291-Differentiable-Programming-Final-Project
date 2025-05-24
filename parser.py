@@ -43,7 +43,7 @@ def annotation_to_type(node) -> floma_diff_ir.type:
 #                 # TODO: error message
 #                 assert False
         case _:
-            assert False
+            assert False, "Function must have a return type"
 
 # def ast_cmp_op_convert(node) -> floma_diff_ir.bin_op:
 #     """ Given a Python AST node representing
