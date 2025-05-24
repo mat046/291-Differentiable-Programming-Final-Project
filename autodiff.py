@@ -133,52 +133,28 @@ def resolve_diff_types(funcs : dict[str, floma_diff_ir.func]) -> \
     if not funcs_to_be_diffed:
         return None, funcs
 
-    diff_structs = {}
     dfloat = floma_diff_ir.Struct('_dfloat',
                             [floma_diff_ir.MemberDef('val', floma_diff_ir.Float()),
                              floma_diff_ir.MemberDef('dval', floma_diff_ir.Float())])
     # diff_structs['float'] = dfloat
     # diff_structs['int'] = floma_diff_ir.Int()
 
-    # def convert_struct_to_diff(s):
-    #     match s:
-    #         case floma_diff_ir.Float():
-    #             return dfloat
-    #         case floma_diff_ir.Int():
-    #             return floma_diff_ir.Int()
-    #         case floma_diff_ir.Array():
-    #             return floma_diff_ir.Array(\
-    #                 convert_struct_to_diff(s.t), s.static_size)
-    #         case floma_diff_ir.Struct():
-    #             return floma_diff_ir.Struct('_d' + s.id,
-    #                 [floma_diff_ir.MemberDef(m.id, convert_struct_to_diff(m.t)) for m in s.members])
-    #         case _:
-    #             assert False
-
-    # for s in structs.values():
-    #     diff_structs[s.id] = convert_struct_to_diff(s)
-
-    # for ds in diff_structs.values():
-    #     if isinstance(ds, floma_diff_ir.Struct):
-    #         structs[ds.id] = ds
-
-    # Replace all Diff types with their differential types in the code
-    for f in funcs.values():
-        funcs[f.id] = replace_diff_types(diff_structs, f)
+    # # Replace all Diff types with their differential types in the code
+    # for f in funcs.values():
+    #     funcs[f.id] = replace_diff_types(diff_structs, f)
 
     # Create a make__dfloat function
     funcs['make__dfloat'] = floma_diff_ir.FunctionDef(
             'make__dfloat',
-            args = [floma_diff_ir.Arg('val', floma_diff_ir.Float(), floma_diff_ir.In()),
-                    floma_diff_ir.Arg('dval', floma_diff_ir.Float(), floma_diff_ir.In())],
+            args = [floma_diff_ir.Arg('val', floma_diff_ir.Float()),
+                    floma_diff_ir.Arg('dval', floma_diff_ir.Float())],
             body = [floma_diff_ir.Declare('ret', dfloat),
                     floma_diff_ir.Assign(floma_diff_ir.StructAccess(floma_diff_ir.Var('ret'), 'val'), floma_diff_ir.Var('val')),
                     floma_diff_ir.Assign(floma_diff_ir.StructAccess(floma_diff_ir.Var('ret'), 'dval'), floma_diff_ir.Var('dval')),
                     floma_diff_ir.Return(floma_diff_ir.Var('ret'))],
-            is_simd = False,
             ret_type = dfloat)
 
-    return structs, diff_structs, funcs
+    return dfloat, funcs
 
 class CallFuncVisitor(irvisitor.IRVisitor):
     def __init__(self):

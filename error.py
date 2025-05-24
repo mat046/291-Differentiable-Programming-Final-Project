@@ -3,7 +3,7 @@ import attrs
 import ir
 ir.generate_asdl_file()
 import _asdl.floma_diff as floma_diff_ir
-# import pretty_print
+import pretty_print
 
 class CompileError(Exception):
     pass

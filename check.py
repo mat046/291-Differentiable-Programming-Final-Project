@@ -89,16 +89,16 @@ def check_undeclared_vars(node : floma_diff_ir.func):
             match node:
                 case floma_diff_ir.Var():
                     return self.visit_var(node)
-                case floma_diff_ir.ArrayAccess():
-                    return self.visit_array_access(node)
+                # case floma_diff_ir.ArrayAccess():
+                #     return self.visit_array_access(node)
                 case floma_diff_ir.StructAccess():
                     return self.visit_struct_access(node)
                 case floma_diff_ir.ConstFloat():
                     return self.visit_const_float(node)
-                case floma_diff_ir.ConstInt():
-                    return self.visit_const_int(node)
-                case floma_diff_ir.BinaryOp():
-                    return self.visit_binary_op(node)
+                # case floma_diff_ir.ConstInt():
+                #     return self.visit_const_int(node)
+                # case floma_diff_ir.BinaryOp():
+                #     return self.visit_binary_op(node)
                 case floma_diff_ir.Call():
                     return self.visit_call(node)
                 case _:
@@ -180,21 +180,23 @@ def check_declare_bounded(node : floma_diff_ir.func):
 
     def is_bounded_size_type(t):
         match t:
-            case floma_diff_ir.Int():
-                return True
+            # case floma_diff_ir.Int():
+            #     return True
             case floma_diff_ir.Float():
                 return True
-            case floma_diff_ir.Array():
-                if t.static_size == None:
-                    return False
-                return is_bounded_size_type(t.t)
+            # case floma_diff_ir.Array():
+            #     if t.static_size == None:
+            #         return False
+            #     return is_bounded_size_type(t.t)
             case floma_diff_ir.Struct():
                 for m in t.members:
                     if not is_bounded_size_type(m.t):
                         return False
                 return True
-            case floma_diff_ir.Diff():
-                return is_bounded_size_type(t.t)
+            # case floma_diff_ir.Diff():
+            #     return is_bounded_size_type(t.t)
+            case _:
+                assert False, "Unsupported type in is_bounded_size_type"
 
     class DeclareBoundChecker(irvisitor.IRVisitor):
         def visit_declare(self, node):
@@ -260,16 +262,21 @@ def check_call_in_call_stmt(node : floma_diff_ir.func,
 
         def visit_call(self, node):
             # ignore built in functions
-            if node.id == 'sin' or \
-                node.id == 'cos' or \
-                node.id == 'sqrt' or \
-                node.id == 'exp' or \
-                node.id == 'log' or \
-                node.id == 'int2float' or \
-                node.id == 'float2int' or \
-                node.id == 'pow' or \
-                node.id == 'thread_id' or \
-                node.id == 'atomic_add':
+            # if node.id == 'sin' or \
+            #     node.id == 'cos' or \
+            #     node.id == 'sqrt' or \
+            #     node.id == 'exp' or \
+            #     node.id == 'log' or \
+            #     node.id == 'int2float' or \
+            #     node.id == 'float2int' or \
+            #     node.id == 'pow' or \
+            #     node.id == 'thread_id' or \
+            #     node.id == 'atomic_add':
+            #     return
+            if node.id == 'add' or \
+                node.id == 'sub' or \
+                node.id == 'mul' or \
+                node.id == 'div':
                 return
 
             if not self.in_call_stmt:
@@ -277,9 +284,9 @@ def check_call_in_call_stmt(node : floma_diff_ir.func,
                 # ignore ForwardDiff & ReverseDiff
                 if not isinstance(f, floma_diff_ir.FunctionDef):
                     return
-                for arg in f.args:
-                    if arg.i == floma_diff_ir.Out():
-                        raise error.CallWithOutArgNotInCallStmt(node)
+                # for arg in f.args:
+                #     if arg.i == floma_diff_ir.Out():
+                #         raise error.CallWithOutArgNotInCallStmt(node)
                 for arg in node.args:
                     self.visit_expr(arg)
 
@@ -302,10 +309,7 @@ def check_unhandled_differentiation(node : floma_diff_ir.func):
 
     UnhandledDiffChecker().visit_function(node)
 
-def check_ir(structs : dict[str, floma_diff_ir.Struct],
-             diff_structs : dict[str, floma_diff_ir.Struct],
-             funcs : dict[str, floma_diff_ir.func],
-             check_diff : bool):
+def check_ir(funcs : dict[str, floma_diff_ir.func], check_diff : bool):
     """ Performs checks and type inferences on the loma functions (funcs).
         Fill in the type information of expressions.
         Raise errors when we see illegal code.

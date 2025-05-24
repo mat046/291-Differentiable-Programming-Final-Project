@@ -10,12 +10,12 @@ module floma_diff {
      stmt = Assign     ( expr target, expr val )
           | Declare    ( string target, type t, expr? val )
           | CallStmt   ( expr call )
+          | Return     ( expr val )
           attributes   ( int? lineno )
 
      expr = Var          ( string id )
           | StructAccess ( expr struct, string member_id )
           | ConstFloat   ( float val )
-          | BinaryOp     ( bin_op op, expr left, expr right )
           | Call         ( string id, expr* args )
           | ContExpr     ( arg a, type arg_type, string* captures, expr body )
           attributes     ( int? lineno, type? t )
@@ -24,15 +24,9 @@ module floma_diff {
 
      type = Float  ( )
           | Struct ( string id, struct_member* members, int? lineno )
-          | Diff   ( type t )
           | Cont   ( type arg_type )
 
      struct_member = MemberDef ( string id, type t )
-
-     bin_op = Add()
-          | Sub()
-          | Mul()
-          | Div()
 }
 
 """
@@ -173,6 +167,23 @@ class CallStmt(stmt):
                             "invalid instance of 'int? lineno'")
 
 
+@_attrs.define(frozen=True)
+class Return(stmt):
+    val: expr
+    lineno: _Optional[int] = None
+
+    def __new__(cls, val, lineno=None):
+        return super().__new__(cls)
+
+    def __attrs_post_init__(self):
+        if not isinstance(self.val, expr):
+            raise TypeError("Return(...) argument 1: " +
+                            "invalid instance of 'expr val'")
+        if not (self.lineno is None or isinstance(self.lineno, int)):
+            raise TypeError("Return(...) argument 2: " +
+                            "invalid instance of 'int? lineno'")
+
+
 class expr:
 
     def __init__(self, *args, **kwargs):
@@ -243,35 +254,6 @@ class ConstFloat(expr):
                             "invalid instance of 'int? lineno'")
         if not (self.t is None or isinstance(self.t, type)):
             raise TypeError("ConstFloat(...) argument 3: " +
-                            "invalid instance of 'type? t'")
-
-
-@_attrs.define(frozen=True)
-class BinaryOp(expr):
-    op: bin_op
-    left: expr
-    right: expr
-    lineno: _Optional[int] = None
-    t: _Optional[type] = None
-
-    def __new__(cls, op, left, right, lineno=None, t=None):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        if not isinstance(self.op, bin_op):
-            raise TypeError("BinaryOp(...) argument 1: " +
-                            "invalid instance of 'bin_op op'")
-        if not isinstance(self.left, expr):
-            raise TypeError("BinaryOp(...) argument 2: " +
-                            "invalid instance of 'expr left'")
-        if not isinstance(self.right, expr):
-            raise TypeError("BinaryOp(...) argument 3: " +
-                            "invalid instance of 'expr right'")
-        if not (self.lineno is None or isinstance(self.lineno, int)):
-            raise TypeError("BinaryOp(...) argument 4: " +
-                            "invalid instance of 'int? lineno'")
-        if not (self.t is None or isinstance(self.t, type)):
-            raise TypeError("BinaryOp(...) argument 5: " +
                             "invalid instance of 'type? t'")
 
 
@@ -397,19 +379,6 @@ class Struct(type):
 
 
 @_attrs.define(frozen=True)
-class Diff(type):
-    t: type
-
-    def __new__(cls, t):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        if not isinstance(self.t, type):
-            raise TypeError("Diff(...) argument 1: " +
-                            "invalid instance of 'type t'")
-
-
-@_attrs.define(frozen=True)
 class Cont(type):
     arg_type: type
 
@@ -443,49 +412,3 @@ class MemberDef(struct_member):
         if not isinstance(self.t, type):
             raise TypeError("MemberDef(...) argument 2: " +
                             "invalid instance of 'type t'")
-
-
-class bin_op:
-
-    def __init__(self, *args, **kwargs):
-        assert False, "Cannot instantiate bin_op"
-
-
-@_attrs.define(frozen=True)
-class Add(bin_op):
-
-    def __new__(cls):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        pass
-
-
-@_attrs.define(frozen=True)
-class Sub(bin_op):
-
-    def __new__(cls):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        pass
-
-
-@_attrs.define(frozen=True)
-class Mul(bin_op):
-
-    def __new__(cls):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        pass
-
-
-@_attrs.define(frozen=True)
-class Div(bin_op):
-
-    def __new__(cls):
-        return super().__new__(cls)
-
-    def __attrs_post_init__(self):
-        pass

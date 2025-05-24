@@ -17,7 +17,7 @@ import _asdl.floma_diff as floma_diff_ir
 import numpy as np
 # import cl_utils
 import pathlib
-# import error
+import error
 import platform
 import distutils.ccompiler
 
@@ -93,24 +93,19 @@ def compile(loma_code : str,
     # first parse the frontend code
     try:
         funcs = parser.parse(loma_code)
-        
-        # # next figure out the types related to differentiation
-        # structs, diff_structs, funcs = autodiff.resolve_diff_types(funcs)
-        
-        # # next check if the resulting code is valid, barring from the derivative code
-        # check.check_ir(structs, diff_structs, funcs, check_diff = False)
 
         # next figure out the types related to differentiation
-        # structs, diff_structs, funcs = autodiff.resolve_diff_types(funcs)
+        dfloat, funcs = autodiff.resolve_diff_types(funcs)
 
         # next check if the resulting code is valid, barring from the derivative code
-        check.check_ir(structs, diff_structs, funcs, check_diff = False)
+        check.check_ir(funcs, check_diff = False)
 
     except error.UserError as e:
         if print_error:
             print('[Error] error found before automatic differentiation:')
             print(e.to_string())
         raise e
+    
     # next actually differentiate the functions
     funcs = autodiff.differentiate(structs, diff_structs, funcs)
     try:

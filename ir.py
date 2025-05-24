@@ -41,12 +41,12 @@ def generate_asdl_file():
           stmt = Assign     ( expr target, expr val )
                | Declare    ( string target, type t, expr? val )
                | CallStmt   ( expr call )
+               | Return     ( expr val )
                attributes   ( int? lineno )
 
           expr = Var          ( string id )
                | StructAccess ( expr struct, string member_id )
                | ConstFloat   ( float val )
-               | BinaryOp     ( bin_op op, expr left, expr right )
                | Call         ( string id, expr* args )
                | ContExpr     ( arg a, type arg_type, string* captures, expr body )
                attributes     ( int? lineno, type? t )
@@ -55,15 +55,9 @@ def generate_asdl_file():
 
           type = Float  ( )
                | Struct ( string id, struct_member* members, int? lineno )
-               | Diff   ( type t )
                | Cont   ( type arg_type )
 
           struct_member = MemberDef ( string id, type t )
-
-          bin_op = Add()
-               | Sub()
-               | Mul()
-               | Div()
      }
      """,
      header= '',

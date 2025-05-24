@@ -14,8 +14,8 @@ class IRVisitor:
         match node:
             case floma_diff_ir.FunctionDef():
                 self.visit_function_def(node)
-            case floma_diff_ir.ForwardDiff():
-                self.visit_forward_diff(node)
+            # case floma_diff_ir.ForwardDiff():
+            #     self.visit_forward_diff(node)
             case floma_diff_ir.ReverseDiff():
                 self.visit_reverse_diff(node)
             case _:
@@ -39,10 +39,10 @@ class IRVisitor:
                 self.visit_declare(node)
             case floma_diff_ir.Assign():
                 self.visit_assign(node)
-            case floma_diff_ir.IfElse():
-                self.visit_ifelse(node)
-            case floma_diff_ir.While():
-                self.visit_while(node)
+            # case floma_diff_ir.IfElse():
+            #     self.visit_ifelse(node)
+            # case floma_diff_ir.While():
+            #     self.visit_while(node)
             case floma_diff_ir.CallStmt():
                 self.visit_call_stmt(node)
             case _:
@@ -77,16 +77,16 @@ class IRVisitor:
         match node:
             case floma_diff_ir.Var():
                 self.visit_var(node)
-            case floma_diff_ir.ArrayAccess():
-                self.visit_array_access(node)
+            # case floma_diff_ir.ArrayAccess():
+            #     self.visit_array_access(node)
             case floma_diff_ir.StructAccess():
                 self.visit_struct_access(node)
             case floma_diff_ir.ConstFloat():
                 self.visit_const_float(node)
-            case floma_diff_ir.ConstInt():
-                self.visit_const_int(node)
-            case floma_diff_ir.BinaryOp():
-                self.visit_binary_op(node)
+            # case floma_diff_ir.ConstInt():
+            #     self.visit_const_int(node)
+            # case floma_diff_ir.BinaryOp():
+            #     self.visit_binary_op(node)
             case floma_diff_ir.Call():
                 self.visit_call(node)
             case _:
