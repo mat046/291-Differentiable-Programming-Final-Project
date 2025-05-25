@@ -399,15 +399,16 @@ def reverse_diff(#diff_func_id : str,
                     body=self.head_,
                     t=None
                 )
-                self.head_ = new_head
 
                 # plug continuation lambda into (new) redex function
-                new_head.args[-1] = new_cont
-                self.conts_ = [new_cont] + self.conts_
+                self.head_ = new_head
+                self.head_.args[-1] = new_cont
+                
 
                 # propogate captures
                 new_cont.captures = copy.deepcopy(self.params_)
-                for c in self.conts_[1:]:
+                self.conts_ = [new_cont] + self.conts_
+                for c in self.conts_:
                     c.captures.append(lambda_param_name)
             
             return self.head_
