@@ -110,7 +110,7 @@ def compile(loma_code : str,
     funcs = autodiff.differentiate(dfloat, funcs)
     try:
         # next check if the derivative code is valid
-        check.check_ir(structs, diff_structs, funcs, check_diff = True)
+        check.check_ir(funcs, check_diff = True)
     except error.UserError as e:
         if print_error:
             print('[Error] error found after automatic differentiation:')

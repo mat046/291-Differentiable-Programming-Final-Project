@@ -101,6 +101,8 @@ def check_undeclared_vars(node : floma_diff_ir.func):
                     return self.visit_binary_op(node)
                 case floma_diff_ir.Call():
                     return self.visit_call(node)
+                case floma_diff_ir.ContExpr():
+                    self.visit_cont_expr(node)
                 case _:
                     assert False, f'Visitor error: unhandled expression {node}'
 
@@ -131,6 +133,9 @@ def check_undeclared_vars(node : floma_diff_ir.func):
             if ret != None:
                 return ret
             return self.visit_expr(node.right)
+        
+        def visit_cont_expr(self, node):
+            super().visit_cont_expr(node)
 
         def visit_call(self, node):
             for arg in node.args:

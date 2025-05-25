@@ -89,6 +89,8 @@ class IRVisitor:
                 self.visit_binary_op(node)
             case floma_diff_ir.Call():
                 self.visit_call(node)
+            case floma_diff_ir.ContExpr():
+                self.visit_cont_expr(node)
             case _:
                 assert False, f'Visitor error: unhandled expression {node}'
 
@@ -102,6 +104,10 @@ class IRVisitor:
     def visit_struct_access(self, node):
         self.visit_expr(node.struct)
         pass
+
+    def visit_cont_expr(self, node):
+        self.visit_expr(node.argument)
+        self.visit_expr(node.body)
 
     def visit_const_float(self, node):
         pass
