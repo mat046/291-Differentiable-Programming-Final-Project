@@ -334,7 +334,7 @@ def reverse_diff(#diff_func_id : str,
 
         def mutate_function_def(self, node):
             # Mutate arguments
-            new_args = RevDiffMutator.mutate_args(node)
+            new_args = self.mutate_args(node)
             
             # Mutate body
             assert len(node.body) == 1, f'Malformed function body in {node.id}. Functions should just be an expression'
@@ -356,7 +356,7 @@ def reverse_diff(#diff_func_id : str,
 
         def mutate_call_stmt(self, node):
             self.call_pairs_ = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.call)
-            self.head_ = self.call_pairs_[0].child_
+            self.head_ = self.call_pairs_[0].parent_
             self.conts_ = []
             self.lambda_count_ = 0
 
@@ -377,23 +377,25 @@ def reverse_diff(#diff_func_id : str,
         #     return super().mutate_var(node)
 
         def mutate_call(self, node):
-            for pccp in self.call_pairs_[1:]:
+            for pccp in self.call_pairs_:
                 new_head = pccp.child_
                 old_parent = pccp.parent_
                 arg_idx = pccp.arg_idx_
 
-                lambda_param = f"t{self.lambda_count_}"
+                lambda_param_name = f"t{self.lambda_count_}"
                 self.lambda_count_ += 1
+                lambda_param = floma_diff_ir.Var(
+                    id=lambda_param_name,
+                    t=dfloat
+                )
 
                 # Pull redex out of the expression
-                old_parent.args[arg_idx] = floma_diff_ir.Var(
-                    id=lambda_param,
-                    t=floma_diff_ir.Float()
-                )
+                old_parent.args[arg_idx] = lambda_param
 
                 # turn continuation into a lambda
                 new_cont = floma_diff_ir.ContExpr(
-                    a=lambda_param,
+                    argument=lambda_param,
+                    captures=[],
                     body=self.head_,
                     t=None
                 )
@@ -406,7 +408,7 @@ def reverse_diff(#diff_func_id : str,
                 # propogate captures
                 new_cont.captures = copy.deepcopy(self.params_)
                 for c in self.conts_[1:]:
-                    c.captures.append(lambda_param)
+                    c.captures.append(lambda_param_name)
             
             return self.head_
 

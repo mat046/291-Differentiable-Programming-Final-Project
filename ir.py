@@ -49,7 +49,7 @@ def generate_asdl_file():
                | ConstFloat   ( float val )
                | BinaryOp     ( bin_op op, expr left, expr right )
                | Call         ( string id, expr* args )
-               | ContExpr     ( arg a, string* captures, expr? body )
+               | ContExpr     ( expr argument, string* captures, expr? body )
                attributes     ( int? lineno, type? t )
 
           arg  = Arg ( string id, type t )

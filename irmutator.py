@@ -51,16 +51,16 @@ class IRMutator:
 
     def mutate_stmt(self, node):
         match node:
-            case floma_diff_ir.Return():
-                return self.mutate_return(node)
-            case floma_diff_ir.Declare():
-                return self.mutate_declare(node)
-            case floma_diff_ir.Assign():
-                return self.mutate_assign(node)
-            case floma_diff_ir.IfElse():
-                return self.mutate_ifelse(node)
-            case floma_diff_ir.While():
-                return self.mutate_while(node)
+            # case floma_diff_ir.Return():
+            #     return self.mutate_return(node)
+            # case floma_diff_ir.Declare():
+            #     return self.mutate_declare(node)
+            # case floma_diff_ir.Assign():
+            #     return self.mutate_assign(node)
+            # case floma_diff_ir.IfElse():
+            #     return self.mutate_ifelse(node)
+            # case floma_diff_ir.While():
+            #     return self.mutate_while(node)
             case floma_diff_ir.CallStmt():
                 return self.mutate_call_stmt(node)
             case _:
@@ -115,18 +115,18 @@ class IRMutator:
 
     def mutate_expr(self, node):
         match node:
-            case floma_diff_ir.Var():
-                return self.mutate_var(node)
-            case floma_diff_ir.ArrayAccess():
-                return self.mutate_array_access(node)
-            case floma_diff_ir.StructAccess():
-                return self.mutate_struct_access(node)
-            case floma_diff_ir.ConstFloat():
-                return self.mutate_const_float(node)
-            case floma_diff_ir.ConstInt():
-                return self.mutate_const_int(node)
-            case floma_diff_ir.BinaryOp():
-                return self.mutate_binary_op(node)
+            # case floma_diff_ir.Var():
+            #     return self.mutate_var(node)
+            # case floma_diff_ir.ArrayAccess():
+            #     return self.mutate_array_access(node)
+            # case floma_diff_ir.StructAccess():
+            #     return self.mutate_struct_access(node)
+            # case floma_diff_ir.ConstFloat():
+            #     return self.mutate_const_float(node)
+            # case floma_diff_ir.ConstInt():
+            #     return self.mutate_const_int(node)
+            # case floma_diff_ir.BinaryOp():
+            #     return self.mutate_binary_op(node)
             case floma_diff_ir.Call():
                 return self.mutate_call(node)
             case _:

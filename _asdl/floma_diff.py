@@ -18,7 +18,7 @@ module floma_diff {
           | ConstFloat   ( float val )
           | BinaryOp     ( bin_op op, expr left, expr right )
           | Call         ( string id, expr* args )
-          | ContExpr     ( arg a, string* captures, expr? body )
+          | ContExpr     ( expr argument, string* captures, expr? body )
           attributes     ( int? lineno, type? t )
 
      arg  = Arg ( string id, type t )
@@ -287,16 +287,16 @@ class Call(expr):
 
 @_attrs.define
 class ContExpr(expr):
-    a: arg
+    argument: expr
     captures: list[str]
     body: _Optional[expr] = None
     lineno: _Optional[int] = None
     t: _Optional[type] = None
 
     def __attrs_post_init__(self):
-        if not isinstance(self.a, arg):
+        if not isinstance(self.argument, expr):
             raise TypeError("ContExpr(...) argument 1: " +
-                            "invalid instance of 'arg a'")
+                            "invalid instance of 'expr argument'")
         if not (isinstance(self.captures, (tuple, list))
                 and all(isinstance(x, str) for x in self.captures)):
             raise TypeError("ContExpr(...) argument 2: " +
