@@ -5,6 +5,7 @@ import irmutator
 import autodiff
 import string
 import random
+from __future__ import annotations 
 
 # From https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
 def random_id_generator(size=6, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
@@ -16,6 +17,7 @@ def reverse_diff(#diff_func_id : str,
                 #  diff_structs : dict[str, floma_diff_ir.Struct],
                  dfloat : floma_diff_ir.Struct,
                  func : floma_diff_ir.FunctionDef,
+                 funcs_dict : dict[str, floma_diff_ir.func],
                  func_to_rev : dict[str, str]) -> floma_diff_ir.FunctionDef:
     """ Given a primal loma function func, apply reverse differentiation
         and return a function that computes the total derivative of func.
@@ -242,53 +244,65 @@ def reverse_diff(#diff_func_id : str,
             self.parent_ : floma_diff_ir.Call = parent
             self.arg_idx_ : int = arg_idx
 
-    def get_call_pairs(parent : floma_diff_ir.Call) -> list[ParentChildCallPair]:
-        assert isinstance(parent, floma_diff_ir.Call)
+        @staticmethod
+        def get_call_pairs_and_mutate_signatures(parent : floma_diff_ir.Call) -> list[ParentChildCallPair]:
+            """
+            The body of the function to be differentiated is a bunch of nested function calls.
+            We need to traverse these functions in a particular order while differentiating.
+            The returned list denotes this order.
 
-        # get list of call pairs
-        pccp_list = []
-        for idx, child in enumerate(parent.args):
-            if not isinstance(child, floma_diff_ir.Call):
-                continue
+            We also mutate the name of the functions to their differentiated counterpart
+            and add the continuation argument to them.
+            """
+            
+            assert isinstance(parent, floma_diff_ir.Call)
 
-            pccp = ParentChildCallPair(child=child, parent=parent, arg_idx=idx)
-            pccp_list.append(pccp)
+            # get list of call pairs
+            pccp_list = []
+            for idx, child in enumerate(parent.args):
+                if not isinstance(child, floma_diff_ir.Call):
+                    continue
 
-            child_pccp_list = get_call_pairs(child)
-            pccp_list += child_pccp_list
-        
-        # change function signatures to diff type
-        func_name = parent.id
-        diff_func_name = func_to_rev[func_name]
-        parent.id = diff_func_name
+                pccp = ParentChildCallPair(child=child, parent=parent, arg_idx=idx)
+                pccp_list.append(pccp)
 
-        continuation = floma_diff_ir.Var(
-            id='k', 
-            t=floma_diff_ir.Cont(arg_type=floma_diff_ir.Float())
-        )
-        parent.args.append
-        
-        return pccp_list
+                child_pccp_list = ParentChildCallPair.get_call_pairs_and_mutate_signatures(child)
+                pccp_list += child_pccp_list
+            
+            # change function signatures to diff type
+            t = funcs_dict[parent.id].ret_type
+            if isinstance(t, floma_diff_ir.Float):
+                continuation = floma_diff_ir.Var(
+                    id='k', 
+                    t=floma_diff_ir.Cont(arg_type=dfloat)
+                )
+                parent.args.append(continuation)
+            parent.ret_type = None
+
+            diff_func_name = func_to_rev[parent.id]
+            parent.id = diff_func_name
+            
+            return pccp_list
 
 
     # Apply the differentiation.
-    class RevDiffMutator(irmutator.IRMutator):
-        def __init__(self):
-            # The mutated function body will turn into a series of nested functions (lambdas)
-            # self.head is the 'front', or outer-most function call
-            self.head_ : floma_diff_ir.Call
+    class RevDiffMutator():
+        # def __init__(self):
+        #     # The mutated function body will turn into a series of nested functions (lambdas)
+        #     # self.head is the 'front', or outer-most function call
+        #     self.head_ : floma_diff_ir.Call
 
-            self.call_pairs_ : list[ParentChildCallPair]
+        #     self.call_pairs_ : list[ParentChildCallPair]
 
-            # The nested lambda functions will need to close on variables from outer scopes
-            # Inner lambdas will have to close on the parameters from outer lambdas
-            # This helps us keep track of the order in which lambdas are nested
-            self.conts_ : list[floma_diff_ir.ContExpr] = []
+        #     # The nested lambda functions will need to close on variables from outer scopes
+        #     # Inner lambdas will have to close on the parameters from outer lambdas
+        #     # This helps us keep track of the order in which lambdas are nested
+        #     self.conts_ : list[floma_diff_ir.ContExpr] = []
 
-            self.lambda_count_ : int = 0
+        #     self.lambda_count_ : int = 0
 
-        def mutate_function_def(self, node):
-            # Mutate arguments
+        @staticmethod
+        def mutate_args(node):
             new_args = []
             for arg in node.args:
                 new_arg : floma_diff_ir.Arg
@@ -305,21 +319,27 @@ def reverse_diff(#diff_func_id : str,
                 case floma_diff_ir.Float():
                     new_arg = floma_diff_ir.Arg(
                         id='k',
-                        t=floma_diff_ir.Cont(arg_type=floma_diff_ir.Float())
+                        t=floma_diff_ir.Cont(arg_type=dfloat)
                     )
                 case _:
                     assert False, f'Unsupported return type for function {node.id}'
             new_args.append(new_arg)
-            
+            node.ret_type = None
 
+            return new_args
+
+        def mutate_function_def(self, node):
+            # Mutate arguments
+            new_args = RevDiffMutator.mutate_args(node)
+            
             # Mutate body
             assert len(node.body) == 1, f'Malformed function body in {node.id}. Functions should just be an expression'
             assert isinstance(node.body[0], floma_diff_ir.CallStmt), f"Function bodies should only be call stmts ({node.id})"
 
-            self.call_pairs_ = get_call_pairs(node.body[0].call)
-            self.head_ = self.call_pairs_[0]
+            call_pairs = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.body[0].call)
+            # self.head_ = self.call_pairs_[0]
             
-            new_body = self.mutate_stmt(node.body[0])
+            new_body = self.mutate_body(call_pairs)
 
             # Return differentiated function
             new_func = floma_diff_ir.FunctionDef(
@@ -330,6 +350,9 @@ def reverse_diff(#diff_func_id : str,
                 lineno=node.lineno
             )
             return new_func
+        
+        def mutate_body(call_pairs : list[ParentChildCallPair]) -> floma_diff_ir.Call:
+            curr_head = call_pairs
 
         # def mutate_ifelse(self, node):
         #     # HW3: TODO
