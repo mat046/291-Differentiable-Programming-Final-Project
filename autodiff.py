@@ -546,7 +546,7 @@ def differentiate(dfloat : floma_diff_ir.Struct,
 
     for f in funcs.values():
         if isinstance(f, floma_diff_ir.ReverseDiff):
-            rev_diff_func = reverse_diff.reverse_diff(dfloat, funcs[f.primal_func], func_to_rev)
+            rev_diff_func = reverse_diff.reverse_diff(dfloat, funcs[f.primal_func], funcs, func_to_rev)
             funcs[f.id] = rev_diff_func
             import pretty_print
             print(f'\nReverse differentiation of function {f.id}:')

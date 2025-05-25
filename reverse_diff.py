@@ -1,3 +1,5 @@
+from __future__ import annotations 
+
 import ir
 ir.generate_asdl_file()
 import _asdl.floma_diff as floma_diff_ir
@@ -5,7 +7,6 @@ import irmutator
 import autodiff
 import string
 import random
-from __future__ import annotations 
 
 # From https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
 def random_id_generator(size=6, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
