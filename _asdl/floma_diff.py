@@ -55,8 +55,8 @@ class func:
 @_attrs.define
 class FunctionDef(func):
     id: str
-    args: _Tuple[arg] = _attrs.field(converter=_list_to_tuple)
-    body: _Tuple[stmt] = _attrs.field(converter=_list_to_tuple)
+    args: list[arg]
+    body: list[stmt]
     ret_type: _Optional[type] = None
     lineno: _Optional[int] = None
 
@@ -265,7 +265,7 @@ class BinaryOp(expr):
 @_attrs.define
 class Call(expr):
     id: str
-    args: _Tuple[expr] = _attrs.field(converter=_list_to_tuple)
+    args: list[expr]
     lineno: _Optional[int] = None
     t: _Optional[type] = None
 
@@ -288,7 +288,7 @@ class Call(expr):
 @_attrs.define
 class ContExpr(expr):
     a: arg
-    captures: _Tuple[expr] = _attrs.field(converter=_list_to_tuple)
+    captures: list[expr]
     body: _Optional[expr] = None
     lineno: _Optional[int] = None
     t: _Optional[type] = None
@@ -348,7 +348,7 @@ class Float(type):
 @_attrs.define
 class Struct(type):
     id: str
-    members: _Tuple[struct_member] = _attrs.field(converter=_list_to_tuple)
+    members: list[struct_member]
     lineno: _Optional[int] = None
 
     def __attrs_post_init__(self):

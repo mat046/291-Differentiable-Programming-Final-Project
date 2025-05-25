@@ -264,8 +264,8 @@ class _BuildClasses:
                                 f"it is already being used as a type name")
 
             seq = ""
-            if f.seq:
-                seq = " = _attrs.field(converter=_list_to_tuple)"
+            # if f.seq:
+            #     seq = " = _attrs.field(converter=_list_to_tuple)"
             l = f"    {f.name} : {self.field_type(f)}{seq}"
             if f.opt:
                 l += f" = None"
@@ -360,7 +360,8 @@ class _BuildClasses:
         # handle sequence and optional qualifiers
         assert not (field.seq and field.opt), "cannot qualify as both * and ?"
         if field.seq:
-            typ = f"_Tuple[{typ}]"
+            # typ = f"_Tuple[{typ}]"
+            typ = f"list[{typ}]"
         elif field.opt:
             typ = f"_Optional[{typ}]"
         return typ

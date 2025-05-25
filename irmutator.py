@@ -1,6 +1,6 @@
 import ir
 ir.generate_asdl_file()
-import _asdl.loma as loma_ir
+import _asdl.floma_diff as floma_diff_ir
 import itertools
 
 def flatten(nested_list : list):
@@ -27,11 +27,11 @@ class IRMutator:
 
     def mutate_function(self, node):
         match node:
-            case loma_ir.FunctionDef():
+            case floma_diff_ir.FunctionDef():
                 return self.mutate_function_def(node)
-            case loma_ir.ForwardDiff():
+            case floma_diff_ir.ForwardDiff():
                 return self.mutate_forward_diff(node)
-            case loma_ir.ReverseDiff():
+            case floma_diff_ir.ReverseDiff():
                 return self.mutate_reverse_diff(node)
             case _:
                 assert False, f'Visitor error: unhandled func {node}'
@@ -40,7 +40,7 @@ class IRMutator:
         new_body = [self.mutate_stmt(stmt) for stmt in node.body]
         # Important: mutate_stmt can return a list of statements. We need to flatten the list.
         new_body = flatten(new_body)
-        return loma_ir.FunctionDef(\
+        return floma_diff_ir.FunctionDef(\
             node.id, node.args, new_body, node.is_simd, node.ret_type, lineno = node.lineno)
 
     def mutate_forward_diff(self, node):
@@ -51,35 +51,35 @@ class IRMutator:
 
     def mutate_stmt(self, node):
         match node:
-            case loma_ir.Return():
+            case floma_diff_ir.Return():
                 return self.mutate_return(node)
-            case loma_ir.Declare():
+            case floma_diff_ir.Declare():
                 return self.mutate_declare(node)
-            case loma_ir.Assign():
+            case floma_diff_ir.Assign():
                 return self.mutate_assign(node)
-            case loma_ir.IfElse():
+            case floma_diff_ir.IfElse():
                 return self.mutate_ifelse(node)
-            case loma_ir.While():
+            case floma_diff_ir.While():
                 return self.mutate_while(node)
-            case loma_ir.CallStmt():
+            case floma_diff_ir.CallStmt():
                 return self.mutate_call_stmt(node)
             case _:
                 assert False, f'Visitor error: unhandled statement {node}'
 
     def mutate_return(self, node):
-        return loma_ir.Return(\
+        return floma_diff_ir.Return(\
             self.mutate_expr(node.val),
             lineno = node.lineno)
 
     def mutate_declare(self, node):
-        return loma_ir.Declare(\
+        return floma_diff_ir.Declare(\
             node.target,
             node.t,
             self.mutate_expr(node.val) if node.val is not None else None,
             lineno = node.lineno)
 
     def mutate_assign(self, node):
-        return loma_ir.Assign(\
+        return floma_diff_ir.Assign(\
             self.mutate_expr(node.target),
             self.mutate_expr(node.val),
             lineno = node.lineno)
@@ -91,7 +91,7 @@ class IRMutator:
         # Important: mutate_stmt can return a list of statements. We need to flatten the lists.
         new_then_stmts = flatten(new_then_stmts)
         new_else_stmts = flatten(new_else_stmts)
-        return loma_ir.IfElse(\
+        return floma_diff_ir.IfElse(\
             new_cond,
             new_then_stmts,
             new_else_stmts,
@@ -102,32 +102,32 @@ class IRMutator:
         new_body = [self.mutate_stmt(stmt) for stmt in node.body]
         # Important: mutate_stmt can return a list of statements. We need to flatten the list.
         new_body = flatten(new_body)
-        return loma_ir.While(\
+        return floma_diff_ir.While(\
             new_cond,
             node.max_iter,
             new_body,
             lineno = node.lineno)
 
     def mutate_call_stmt(self, node):
-        return loma_ir.CallStmt(\
+        return floma_diff_ir.CallStmt(\
             self.mutate_expr(node.call),
             lineno = node.lineno)
 
     def mutate_expr(self, node):
         match node:
-            case loma_ir.Var():
+            case floma_diff_ir.Var():
                 return self.mutate_var(node)
-            case loma_ir.ArrayAccess():
+            case floma_diff_ir.ArrayAccess():
                 return self.mutate_array_access(node)
-            case loma_ir.StructAccess():
+            case floma_diff_ir.StructAccess():
                 return self.mutate_struct_access(node)
-            case loma_ir.ConstFloat():
+            case floma_diff_ir.ConstFloat():
                 return self.mutate_const_float(node)
-            case loma_ir.ConstInt():
+            case floma_diff_ir.ConstInt():
                 return self.mutate_const_int(node)
-            case loma_ir.BinaryOp():
+            case floma_diff_ir.BinaryOp():
                 return self.mutate_binary_op(node)
-            case loma_ir.Call():
+            case floma_diff_ir.Call():
                 return self.mutate_call(node)
             case _:
                 assert False, f'Visitor error: unhandled expression {node}'
@@ -136,14 +136,14 @@ class IRMutator:
         return node
 
     def mutate_array_access(self, node):
-        return loma_ir.ArrayAccess(\
+        return floma_diff_ir.ArrayAccess(\
             self.mutate_expr(node.array),
             self.mutate_expr(node.index),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_struct_access(self, node):
-        return loma_ir.StructAccess(\
+        return floma_diff_ir.StructAccess(\
             self.mutate_expr(node.struct),
             node.member_id,
             lineno = node.lineno,
@@ -157,119 +157,119 @@ class IRMutator:
 
     def mutate_binary_op(self, node):
         match node.op:
-            case loma_ir.Add():
+            case floma_diff_ir.Add():
                 return self.mutate_add(node)
-            case loma_ir.Sub():
+            case floma_diff_ir.Sub():
                 return self.mutate_sub(node)
-            case loma_ir.Mul():
+            case floma_diff_ir.Mul():
                 return self.mutate_mul(node)
-            case loma_ir.Div():
+            case floma_diff_ir.Div():
                 return self.mutate_div(node)
-            case loma_ir.Less():
+            case floma_diff_ir.Less():
                 return self.mutate_less(node)
-            case loma_ir.LessEqual():
+            case floma_diff_ir.LessEqual():
                 return self.mutate_less_equal(node)
-            case loma_ir.Greater():
+            case floma_diff_ir.Greater():
                 return self.mutate_greater(node)
-            case loma_ir.GreaterEqual():
+            case floma_diff_ir.GreaterEqual():
                 return self.mutate_greater_equal(node)
-            case loma_ir.Equal():
+            case floma_diff_ir.Equal():
                 return self.mutate_equal(node)
-            case loma_ir.And():
+            case floma_diff_ir.And():
                 return self.mutate_and(node)
-            case loma_ir.Or():
+            case floma_diff_ir.Or():
                 return self.mutate_or(node)
 
     def mutate_add(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Add(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Add(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_sub(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Sub(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Sub(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_mul(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Mul(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Mul(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_div(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Div(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Div(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_less(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Less(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Less(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_less_equal(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.LessEqual(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.LessEqual(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_greater(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Greater(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Greater(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_greater_equal(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.GreaterEqual(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.GreaterEqual(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_equal(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Equal(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Equal(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_and(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.And(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.And(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_or(self, node):
-        return loma_ir.BinaryOp(\
-            loma_ir.Or(),
+        return floma_diff_ir.BinaryOp(\
+            floma_diff_ir.Or(),
             self.mutate_expr(node.left),
             self.mutate_expr(node.right),
             lineno = node.lineno,
             t = node.t)
 
     def mutate_call(self, node):
-        return loma_ir.Call(\
+        return floma_diff_ir.Call(\
             node.id,
             [self.mutate_expr(arg) for arg in node.args],
             lineno = node.lineno,

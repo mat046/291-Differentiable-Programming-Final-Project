@@ -237,10 +237,39 @@ def reverse_diff(#diff_func_id : str,
             arg_idx=0  # sub is the 0th index in the add call
         }
         """
-        def __init__(self):
-            self.child : floma_diff_ir.Call
-            self.parent : floma_diff_ir.Call
-            self.arg_idx : int
+        def __init__(self, child, parent, arg_idx):
+            self.child_ : floma_diff_ir.Call = child
+            self.parent_ : floma_diff_ir.Call = parent
+            self.arg_idx_ : int = arg_idx
+
+    def get_call_pairs(parent : floma_diff_ir.Call) -> list[ParentChildCallPair]:
+        assert isinstance(parent, floma_diff_ir.Call)
+
+        # get list of call pairs
+        pccp_list = []
+        for idx, child in enumerate(parent.args):
+            if not isinstance(child, floma_diff_ir.Call):
+                continue
+
+            pccp = ParentChildCallPair(child=child, parent=parent, arg_idx=idx)
+            pccp_list.append(pccp)
+
+            child_pccp_list = get_call_pairs(child)
+            pccp_list += child_pccp_list
+        
+        # change function signatures to diff type
+        func_name = parent.id
+        diff_func_name = func_to_rev[func_name]
+        parent.id = diff_func_name
+
+        continuation = floma_diff_ir.Var(
+            id='k', 
+            t=floma_diff_ir.Cont(arg_type=floma_diff_ir.Float())
+        )
+        parent.args.append
+        
+        return pccp_list
+
 
     # Apply the differentiation.
     class RevDiffMutator(irmutator.IRMutator):
@@ -256,13 +285,15 @@ def reverse_diff(#diff_func_id : str,
             # This helps us keep track of the order in which lambdas are nested
             self.conts_ : list[floma_diff_ir.ContExpr] = []
 
+            self.lambda_count_ : int = 0
+
         def mutate_function_def(self, node):
             # Mutate arguments
             new_args = []
             for arg in node.args:
                 new_arg : floma_diff_ir.Arg
                 match arg.t:
-                    case floma_diff_ir.Float:
+                    case floma_diff_ir.Float():
                         new_arg = floma_diff_ir.Arg(id=arg.id, t=dfloat)
                     case _:
                         assert False, f"Unrecognized type for arg {arg}"
@@ -271,7 +302,7 @@ def reverse_diff(#diff_func_id : str,
             assert node.ret_type != None # should be caught in parser.py, but just in case
             new_arg : floma_diff_ir.Arg
             match node.ret_type:
-                case floma_diff_ir.Float:
+                case floma_diff_ir.Float():
                     new_arg = floma_diff_ir.Arg(
                         id='k',
                         t=floma_diff_ir.Cont(arg_type=floma_diff_ir.Float())
@@ -283,6 +314,11 @@ def reverse_diff(#diff_func_id : str,
 
             # Mutate body
             assert len(node.body) == 1, f'Malformed function body in {node.id}. Functions should just be an expression'
+            assert isinstance(node.body[0], floma_diff_ir.CallStmt), f"Function bodies should only be call stmts ({node.id})"
+
+            self.call_pairs_ = get_call_pairs(node.body[0].call)
+            self.head_ = self.call_pairs_[0]
+            
             new_body = self.mutate_stmt(node.body[0])
 
             # Return differentiated function
