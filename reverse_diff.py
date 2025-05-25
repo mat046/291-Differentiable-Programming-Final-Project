@@ -7,6 +7,7 @@ import irmutator
 import autodiff
 import string
 import random
+import copy
 
 # From https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
 def random_id_generator(size=6, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
@@ -287,23 +288,24 @@ def reverse_diff(#diff_func_id : str,
 
 
     # Apply the differentiation.
-    class RevDiffMutator():
-        # def __init__(self):
-        #     # The mutated function body will turn into a series of nested functions (lambdas)
-        #     # self.head is the 'front', or outer-most function call
-        #     self.head_ : floma_diff_ir.Call
+    class RevDiffMutator(irmutator.IRMutator):
+        def __init__(self):
+            # The mutated function body will turn into a series of nested functions (lambdas)
+            # self.head is the 'front', or outer-most function call
+            self.head_ : floma_diff_ir.Call
 
-        #     self.call_pairs_ : list[ParentChildCallPair]
+            self.call_pairs_ : list[ParentChildCallPair]
 
-        #     # The nested lambda functions will need to close on variables from outer scopes
-        #     # Inner lambdas will have to close on the parameters from outer lambdas
-        #     # This helps us keep track of the order in which lambdas are nested
-        #     self.conts_ : list[floma_diff_ir.ContExpr] = []
+            # The nested lambda functions will need to close on variables from outer scopes
+            # Inner lambdas will have to close on the parameters from outer lambdas
+            # This helps us keep track of the order in which lambdas are nested
+            self.conts_ : list[floma_diff_ir.ContExpr] = []
 
-        #     self.lambda_count_ : int = 0
+            self.lambda_count_ : int = 0
 
-        @staticmethod
-        def mutate_args(node):
+            self.params_ : list[str] = []
+
+        def mutate_args(self, node):
             new_args = []
             for arg in node.args:
                 new_arg : floma_diff_ir.Arg
@@ -313,6 +315,7 @@ def reverse_diff(#diff_func_id : str,
                     case _:
                         assert False, f"Unrecognized type for arg {arg}"
                 new_args.append(new_arg)
+                self.params_.append(new_arg.id)
             
             assert node.ret_type != None # should be caught in parser.py, but just in case
             new_arg : floma_diff_ir.Arg
@@ -335,12 +338,7 @@ def reverse_diff(#diff_func_id : str,
             
             # Mutate body
             assert len(node.body) == 1, f'Malformed function body in {node.id}. Functions should just be an expression'
-            assert isinstance(node.body[0], floma_diff_ir.CallStmt), f"Function bodies should only be call stmts ({node.id})"
-
-            call_pairs = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.body[0].call)
-            # self.head_ = self.call_pairs_[0]
-            
-            new_body = self.mutate_body(call_pairs)
+            new_body = self.mutate_stmt(node.body[0])
 
             # Return differentiated function
             new_func = floma_diff_ir.FunctionDef(
@@ -351,32 +349,65 @@ def reverse_diff(#diff_func_id : str,
                 lineno=node.lineno
             )
             return new_func
-        
-        def mutate_body(call_pairs : list[ParentChildCallPair]) -> floma_diff_ir.Call:
-            curr_head = call_pairs
 
         # def mutate_ifelse(self, node):
         #     # HW3: TODO
         #     return super().mutate_ifelse(node)
 
         def mutate_call_stmt(self, node):
-            new_body = self.mutate_expr(node.call)
-            return new_body
+            self.call_pairs_ = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.call)
+            self.head_ = self.call_pairs_[0].child_
+            self.conts_ = []
+            self.lambda_count_ = 0
 
-        def mutate_const_float(self, node):
-            # HW2: TODO
-            return super().mutate_const_float(node)
+            new_call = self.mutate_expr(node.call)
+            node.call = new_call
+            return node
+
+        # def mutate_const_float(self, node):
+        #     # TODO:
+        #     assert False, "Need to implement mutate_const_float"
 
         # def mutate_const_int(self, node):
         #     # HW2: TODO
         #     return super().mutate_const_int(node)
 
-        def mutate_var(self, node):
-            # HW2: TODO
-            return super().mutate_var(node)
+        # def mutate_var(self, node):
+        #     # HW2: TODO
+        #     return super().mutate_var(node)
 
         def mutate_call(self, node):
-            # HW2: TODO
-            return super().mutate_call(node)
+            for pccp in self.call_pairs_[1:]:
+                new_head = pccp.child_
+                old_parent = pccp.parent_
+                arg_idx = pccp.arg_idx_
+
+                lambda_param = f"t{self.lambda_count_}"
+                self.lambda_count_ += 1
+
+                # Pull redex out of the expression
+                old_parent.args[arg_idx] = floma_diff_ir.Var(
+                    id=lambda_param,
+                    t=floma_diff_ir.Float()
+                )
+
+                # turn continuation into a lambda
+                new_cont = floma_diff_ir.ContExpr(
+                    a=lambda_param,
+                    body=self.head_,
+                    t=None
+                )
+                self.head_ = new_head
+
+                # plug continuation lambda into (new) redex function
+                new_head.args[-1] = new_cont
+                self.conts_ = [new_cont] + self.conts_
+
+                # propogate captures
+                new_cont.captures = copy.deepcopy(self.params_)
+                for c in self.conts_[1:]:
+                    c.captures.append(lambda_param)
+            
+            return self.head_
 
     return RevDiffMutator().mutate_function_def(func)
