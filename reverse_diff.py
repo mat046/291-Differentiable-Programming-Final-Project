@@ -342,7 +342,7 @@ def reverse_diff(#diff_func_id : str,
 
             # Return differentiated function
             new_func = floma_diff_ir.FunctionDef(
-                id=func_to_rev[func],
+                id=func_to_rev[func.id],
                 args=new_args,
                 body=[new_body],
                 ret_type=None,

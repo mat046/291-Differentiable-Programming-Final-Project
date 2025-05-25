@@ -24,6 +24,8 @@ def type_to_string(node : floma_diff_ir.type) -> str:
             return node.id
         # case floma_diff_ir.Diff():
         #     return f'Diff[{type_to_string(node.t)}]'
+        case floma_diff_ir.Cont():
+            return 'lambda'
         case None:
             return 'void'
         case _:
@@ -156,6 +158,16 @@ class PrettyPrintVisitor(irvisitor.IRVisitor):
                 ret = f'{func_id}('
                 ret += ','.join([self.visit_expr(arg) for arg in node.args])
                 ret += ')'
+                return ret
+            case floma_diff_ir.ContExpr():
+                param = self.visit_expr(node.argument)
+                ret = "lambda " + param + ":"
+
+                self.tab_count += 1
+                tabs = '\t' * self.tab_count
+                ret += "\n" + tabs + self.visit_expr(node.body)
+                self.tab_count -= 1
+
                 return ret
             case None:
                 return ''
