@@ -340,6 +340,7 @@ def reverse_diff(#diff_func_id : str,
                 case _:
                     assert False, f'Unsupported return type for function {node.id}'
             new_args.append(new_arg)
+            self.params_.append(new_arg.id)
             node.ret_type = None
 
             return new_args
@@ -420,9 +421,9 @@ def reverse_diff(#diff_func_id : str,
 
                 # propogate captures
                 new_cont.captures = copy.deepcopy(self.params_)
-                self.conts_ = [new_cont] + self.conts_
                 for c in self.conts_:
                     c.captures.append(lambda_param_name)
+                self.conts_ = [new_cont] + self.conts_
             
             return self.head_
 

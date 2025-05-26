@@ -24,7 +24,7 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
         case floma_diff_ir.Struct():
             return node.id
         case floma_diff_ir.Cont():
-            return "std::function<void(_dfloat&)>"
+            return "const std::function<void(_dfloat&)>&"
         case None:
             return 'void'
         case _:
@@ -261,7 +261,7 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
     code += f'typedef struct {{\n'
     for m in dfloat.members:
         code += f'\t{type_to_string(m.t)} {m.id};\n'
-    code += f'}} {dfloat.id};\n'
+    code += f'}} {dfloat.id};\n\n'
 
     # Forward declaration of functions
     for f in funcs.values():
@@ -270,14 +270,12 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
             if i > 0:
                 code += ', '
             code += f'{type_to_string(arg)} {arg.id}'
-        # if f.is_simd:
-        #     if len(f.args) > 0:
-        #         code += ', '
-        #     code += 'int __total_work'
         code += ');\n'
+    code += '\n'
 
     for f in funcs.values():
         cg = CCodegenVisitor(funcs)
         cg.visit_function(f)
         code += cg.code
+        code += '\n'
     return code
