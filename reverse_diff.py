@@ -260,11 +260,8 @@ def reverse_diff(#diff_func_id : str,
             match parent:
                 case floma_diff_ir.ConstFloat():
                     new_node = floma_diff_ir.Call(
-                        id="make__dfloat",
-                        args=[
-                            floma_diff_ir.ConstFloat(val=parent.val),
-                            floma_diff_ir.ConstFloat(0.0)
-                        ],
+                        id='make__const__dfloat',
+                        args=[floma_diff_ir.ConstFloat(val=parent.val)],
                         lineno=parent.lineno,
                         t=dfloat
                     )
@@ -308,8 +305,8 @@ def reverse_diff(#diff_func_id : str,
                 if not isinstance(arg, floma_diff_ir.Call):
                     continue
                 
-                # 
-                if arg.id == "make__dfloat":
+                # if the argument is a float constant, ignore it
+                if arg.id == "make__const__dfloat":
                     continue
 
                 pccp = ParentChildCallPair(child=arg, parent=new_parent, arg_idx=idx)
@@ -437,7 +434,6 @@ def reverse_diff(#diff_func_id : str,
                 # plug continuation lambda into (new) redex function
                 self.head_ = new_head
                 self.head_.args[-1] = new_cont
-                
 
                 # propogate captures
                 new_cont.captures = copy.deepcopy(self.params_)

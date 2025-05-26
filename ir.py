@@ -39,7 +39,7 @@ def generate_asdl_file():
                attributes  ( int? lineno )
 
           stmt = Assign     ( expr target, expr val )
-               | Declare    ( string target, type t, expr? val )
+               | Declare    ( string target, type t, expr? val, bool? is_static_var )
                | CallStmt   ( expr call )
                | Return     ( expr val )
                attributes   ( int? lineno )

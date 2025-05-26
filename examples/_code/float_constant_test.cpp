@@ -9,6 +9,7 @@ typedef struct {
 void func(float x);
 void d_func(_dfloat& x, const std::function<void(_dfloat&)>& k);
 _dfloat make__dfloat(float val, float dval);
+_dfloat& make__const__dfloat(float val);
 float addf(float x, float y);
 void d_addf(_dfloat& x, _dfloat& y, const std::function<void(_dfloat&)>& k);
 float subf(float x, float y);
@@ -23,8 +24,8 @@ void func(float x) {
 }
 
 void d_func(_dfloat& x, const std::function<void(_dfloat&)>& k) {
-	d_mulf(x,make__dfloat((float)(2.0),(float)(0.0)),[&x,&k](_dfloat& t1)
-		-> void{d_divf(x,make__dfloat((float)(2.0),(float)(0.0)),[&x,&k,&t1](_dfloat& t0)
+	d_mulf(x,make__const__dfloat((float)(2.0)),[&x,&k](_dfloat& t1)
+		-> void{d_divf(x,make__const__dfloat((float)(2.0)),[&x,&k,&t1](_dfloat& t0)
 			-> void{d_addf(t1,t0,k);});});
 }
 
@@ -33,6 +34,12 @@ _dfloat make__dfloat(float val, float dval) {
 	(ret).val = val;
 	(ret).dval = dval;
 	return ret;
+}
+
+_dfloat& make__const__dfloat(float val) {
+	thread_local _dfloat temp;
+	temp = make__dfloat(val,(float)(0.0));
+	return temp;
 }
 
 float addf(float x, float y) {

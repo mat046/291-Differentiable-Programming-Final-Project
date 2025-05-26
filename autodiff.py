@@ -141,8 +141,9 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     dfloat = floma_diff_ir.Struct('_dfloat',
                             [floma_diff_ir.MemberDef('val', floma_diff_ir.Float()),
                              floma_diff_ir.MemberDef('dval', floma_diff_ir.Float())])
+    
     funcs['make__dfloat'] = floma_diff_ir.FunctionDef(
-            'make__dfloat',
+            id='make__dfloat',
             args = [floma_diff_ir.Arg('val', floma_diff_ir.Float()),
                     floma_diff_ir.Arg('dval', floma_diff_ir.Float())],
             body = [floma_diff_ir.Declare('ret', dfloat),
@@ -151,6 +152,22 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                     floma_diff_ir.Return(floma_diff_ir.Var('ret'))],
             ret_type = dfloat)
     
+    funcs['make__const__dfloat'] = floma_diff_ir.FunctionDef(
+        id='make__const__dfloat',
+        args=[floma_diff_ir.Arg('val', floma_diff_ir.Float())],
+        body=[
+            floma_diff_ir.Declare('temp', dfloat, is_static_var=True),
+            floma_diff_ir.Assign(
+                target=floma_diff_ir.Var(id='temp',t=dfloat),
+                val=floma_diff_ir.Call(
+                    id='make__dfloat',
+                    args=[floma_diff_ir.Var(id='val', t=floma_diff_ir.Float()),
+                          floma_diff_ir.ConstFloat(val=0.0)],
+                )
+            ),
+            floma_diff_ir.Return(val=floma_diff_ir.Var(id='temp', t=dfloat))],
+        ret_type=dfloat
+    )
 
     # --------------------------- built in functions and derivatives ---------------------------------------------
 

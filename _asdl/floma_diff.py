@@ -8,7 +8,7 @@ module floma_diff {
           attributes  ( int? lineno )
 
      stmt = Assign     ( expr target, expr val )
-          | Declare    ( string target, type t, expr? val )
+          | Declare    ( string target, type t, expr? val, bool? is_static_var )
           | CallStmt   ( expr call )
           | Return     ( expr val )
           attributes   ( int? lineno )
@@ -127,6 +127,7 @@ class Declare(stmt):
     target: str
     t: type
     val: _Optional[expr] = None
+    is_static_var: _Optional[bool] = None
     lineno: _Optional[int] = None
 
     def __attrs_post_init__(self):
@@ -139,8 +140,12 @@ class Declare(stmt):
         if not (self.val is None or isinstance(self.val, expr)):
             raise TypeError("Declare(...) argument 3: " +
                             "invalid instance of 'expr? val'")
-        if not (self.lineno is None or isinstance(self.lineno, int)):
+        if not (self.is_static_var is None
+                or isinstance(self.is_static_var, bool)):
             raise TypeError("Declare(...) argument 4: " +
+                            "invalid instance of 'bool? is_static_var'")
+        if not (self.lineno is None or isinstance(self.lineno, int)):
+            raise TypeError("Declare(...) argument 5: " +
                             "invalid instance of 'int? lineno'")
 
 

@@ -47,14 +47,16 @@ class CCodegenVisitor(irvisitor.IRVisitor):
         self.code += '\t' * self.tab_count
 
     def visit_function_def(self, node):
-        self.code += f'{type_to_string(node.ret_type)} {node.id}('
+        ret_type = type_to_string(node.ret_type)
+        if node.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
+            ret_type += '&'
+        self.code += f'{ret_type} {node.id}('
+        
         for i, arg in enumerate(node.args):
             if i > 0:
                 self.code += ', '
             self.code += f'{type_to_string(arg)} {arg.id}'
         self.code += ') {\n'
-        # self.byref_args = set([arg.id for arg in node.args if \
-        #     arg.i == floma_diff_ir.Out() and (not isinstance(arg.t, floma_diff_ir.Array))])
 
         self.ret_type = node.ret_type
         self.tab_count += 1
@@ -97,6 +99,8 @@ class CCodegenVisitor(irvisitor.IRVisitor):
         #     # Special rule for arrays
         #     assert node.t.static_size != None
         #     self.code += f'{type_to_string(node.t.t)} {node.target}[{node.t.static_size}]'
+        if node.is_static_var:
+            self.code += 'thread_local '
         self.code += f'{type_to_string(node.t)} {node.target}'
         if node.val is not None:
             self.code += f' = {self.visit_expr(node.val)}'#\n'
@@ -265,7 +269,10 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
 
     # Forward declaration of functions
     for f in funcs.values():
-        code += f'{type_to_string(f.ret_type)} {f.id}('
+        ret_type = type_to_string(f.ret_type)
+        if f.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
+            ret_type += '&'
+        code += f'{ret_type} {f.id}('
         for i, arg in enumerate(f.args):
             if i > 0:
                 code += ', '
