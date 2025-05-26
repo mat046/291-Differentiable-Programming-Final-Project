@@ -10,4 +10,4 @@ if __name__ == '__main__':
     with open('nested_funcs_test.py') as f:
         compiler.compile(f.read(),
                             target = 'c',
-                            output_filename = '_code/nested_funcs_test.cpp')
+                            output_cpp_filename = '_code/nested_funcs_test.cpp')

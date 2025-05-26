@@ -21,57 +21,31 @@ import error
 import platform
 import distutils.ccompiler
 
-# def loma_to_ctypes_type(t : floma_diff_ir.type | floma_diff_ir.arg,
-#                         ctypes_structs : dict[str, ctypes.Structure]) -> ctypes.Structure:
-#     """ Given a loma type, maps to the corresponding ctypes type by
-#         looking up ctypes_structs
-#     """
+def loma_to_ctypes_type(t : floma_diff_ir.type | floma_diff_ir.arg) -> ctypes.Structure:
+                        # ctypes_structs : dict[str, ctypes.Structure]) -> ctypes.Structure:
+    """ Given a loma type, maps to the corresponding ctypes type by
+        looking up ctypes_structs
+    """
 
-#     match t:
-#         case floma_diff_ir.Arg():
-#             if isinstance(t.t, floma_diff_ir.Array):
-#                 return loma_to_ctypes_type(t.t, ctypes_structs)
-#             else:
-#                 if t.i == floma_diff_ir.Out():
-#                     return ctypes.POINTER(loma_to_ctypes_type(t.t, ctypes_structs))
-#                 else:
-#                     return loma_to_ctypes_type(t.t, ctypes_structs)
-#         case floma_diff_ir.Int():
-#             return ctypes.c_int
-#         case floma_diff_ir.Float():
-#             return ctypes.c_float
-#         case floma_diff_ir.Array():
-#             return ctypes.POINTER(loma_to_ctypes_type(t.t, ctypes_structs))
-#         case floma_diff_ir.Struct():
-#             return ctypes_structs[t.id]
-#         case None:
-#             return None
-#         case _:
-#             assert False
+    match t:
+        case floma_diff_ir.Arg():
+            return loma_to_ctypes_type(t.t)
+        # case floma_diff_ir.Int():
+        #     return ctypes.c_int
+        case floma_diff_ir.Float():
+            return ctypes.c_float
+        # case floma_diff_ir.Struct():
+        #     return ctypes_structs[t.id]
+        case None:
+            return None
+        case _:
+            assert False
 
-# def topo_sort_structs(structs : dict[str, floma_diff_ir.Struct]):
-#     sorted_structs_list = []
-#     traversed_struct = set()
-#     def traverse_structs(s):
-#         if s in traversed_struct:
-#             return
-#         for m in s.members:
-#             if isinstance(m.t, floma_diff_ir.Struct) or isinstance(m.t, floma_diff_ir.Array):
-#                 next_s = m.t if isinstance(m.t, floma_diff_ir.Struct) else m.t.t
-#                 if isinstance(next_s, floma_diff_ir.Struct):
-#                     traverse_structs(structs[next_s.id])
-#         sorted_structs_list.append(s)
-#         traversed_struct.add(s)
-#     for s in structs.values():
-#         traverse_structs(s)
-#     return sorted_structs_list
 
 def compile(loma_code : str,
-            target : str = 'c',
+            target : str = 'c++',
             output_filename : str = None,
-            opencl_context = None,
-            opencl_device = None,
-            opencl_command_queue = None,
+            output_cpp_filename : str = None,
             print_error = True):
     """ Given loma frontend code represented as a string,
         compiles it to either C, ISPC, or OpenCL code.
@@ -117,13 +91,13 @@ def compile(loma_code : str,
             print(e.to_string())
         raise e
 
-    # if output_filename is not None:
-    #     # + .dll or + .so
-    #     output_filename = output_filename + distutils.ccompiler.new_compiler().shared_lib_extension
-    #     pathlib.Path(os.path.dirname(output_filename)).mkdir(parents=True, exist_ok=True)
+    if output_filename is not None:
+        # + .dll or + .so
+        output_filename = output_filename + distutils.ccompiler.new_compiler().shared_lib_extension
+        pathlib.Path(os.path.dirname(output_filename)).mkdir(parents=True, exist_ok=True)
 
     # Generate and compile the code
-    if target == 'c':
+    if target == 'c++':
         code = codegen_c.codegen_c(dfloat, funcs)
         # add standard headers
         code = """
@@ -134,149 +108,48 @@ def compile(loma_code : str,
         print(code)
 
         if platform.system() == 'Windows':
-            # tmp_c_filename = f'_tmp.c'
-            # with open(tmp_c_filename, 'w') as f:
-            #     f.write(code)
-            # obj_filename = output_filename + '.o'
-            # log = run(['cl.exe', '/c', '/O2', f'/Fo:{obj_filename}', tmp_c_filename],
-            #     encoding='utf-8',
-            #     capture_output=True)
-            # if log.returncode != 0:
-            #     print(log.stderr)
-            # exports = [f'/EXPORT:{f.id}' for f in funcs.values()]
-            # log = run(['link.exe', '/DLL', f'/OUT:{output_filename}', '/OPT:REF', '/OPT:ICF', *exports, obj_filename],
-            #     encoding='utf-8',
-            #     capture_output=True)
-            # if log.returncode != 0:
-            #     print(log.stderr)
-            # os.remove(tmp_c_filename)
             assert False, "Windows is currently not a supported platform"
         else:
-            # log = run(['gcc', '-shared', '-fPIC', '-o', output_filename, '-O2', '-x', 'c', '-'],
-            #     input = code,
-            #     encoding='utf-8',
-            #     capture_output=True)
-            # if log.returncode != 0:
-            #     print(log.stderr)
-            os.makedirs('_code', exist_ok=True) 
-            with open(output_filename, 'w') as f:
-                f.write(code)
-#     elif target == 'ispc':
-#         code = codegen_ispc.codegen_ispc(structs, funcs)
-#         # add atomic add
-#         code = """
-# void atomic_add(float *ptr, float val) {
-#     float found = *ptr;
-#     float expected;
-#     do {
-#         expected = found;
-#         found = atomic_compare_exchange_global(ptr, expected, expected + val);
-#     } while (found != expected);
-# }
-#         \n""" + code
+            log = run(['g++', '-shared', '-fPIC', '-o', output_filename, '-O2', '-x', 'c', '-'],
+                input = code,
+                encoding='utf-8',
+                capture_output=True)
+            if log.returncode != 0:
+                print(log.stderr)
+            
+            if output_cpp_filename != None:
+                pathlib.Path(os.path.dirname(output_cpp_filename)).mkdir(parents=True, exist_ok=True)
+                with open(output_cpp_filename, 'w') as f:
+                    f.write(code)
+    else:
+        assert False, f'unrecognized compilation target {target}'
 
-#         print('Generated ISPC code:')
-#         print(code)
+    # # build ctypes structs/classes
+    # ctypes_structs = {}
+    # for s in sorted_structs_list:
+    #     ctypes_structs[s.id] = type(s.id, (ctypes.Structure, ), {
+    #         '_fields_': [(m.id, loma_to_ctypes_type(m.t, ctypes_structs)) for m in s.members]
+    #     })
+    
+    # ctype_dfloat = type(
+    #     dfloat.id,
+    #     (ctypes.Structure,),
+    #     {
+    #         '_fields_': [(m.id, loma_to_ctypes_type(m.t)) for m in dfloat]
+    #     }
+    # )
+    class _dfloat(ctypes.Structure):
+        _fields_ = [
+            ('val', ctypes.c_float),
+            ('dval', ctypes.c_float)
+        ]
 
-#         obj_filename = output_filename + '.o'
-#         log = run(['ispc', '--pic', '-o', obj_filename, '-O2', '-'],
-#             input = code,
-#             encoding='utf-8',
-#             capture_output=True)
-#         if log.returncode != 0:
-#             print(log.stderr)
+    # load the dynamic library
+    lib = CDLL(os.path.join(os.getcwd(), output_filename))
+    for f in funcs.values():
+        c_func = getattr(lib, f.id)
+        argtypes = [loma_to_ctypes_type(arg) for arg in f.args]
+        c_func.argtypes = argtypes
+        c_func.restype = loma_to_ctypes_type(f.ret_type)
 
-#         script_dir = os.path.dirname(os.path.abspath(
-#             inspect.getfile(inspect.currentframe())))
-#         tasksys_path = os.path.join(script_dir, 'runtime', 'tasksys.cpp')
-
-#         output_dir = os.path.dirname(output_filename)
-#         tasksys_obj_path = os.path.join(output_dir, 'tasksys.o')
-
-#         if platform.system() == 'Windows':
-#             log = run(['cl.exe', '/std:c++17', '/c', '/O2', f'/Fo:{tasksys_obj_path}', tasksys_path],
-#                 encoding='utf-8',
-#                 capture_output=True)
-#             if log.returncode != 0:
-#                 print(log.stderr)
-#             exports = [f'/EXPORT:{f.id}' for f in funcs.values()]
-#             log = run(['link.exe', '/DLL', f'/OUT:{output_filename}', '/OPT:REF', '/OPT:ICF', *exports, obj_filename, tasksys_obj_path],
-#                 encoding='utf-8',
-#                 capture_output=True)
-#             if log.returncode != 0:
-#                 print(log.stderr)
-#         else:
-#             log = run(['g++', '-fPIC', '-std=c++17', '-c', '-O2', '-o', tasksys_obj_path, tasksys_path],
-#                 encoding='utf-8',
-#                 capture_output=True)
-#             if log.returncode != 0:
-#                print(log.stderr)
-#             log = run(['g++', '-fPIC', '-shared', '-o', output_filename, '-O2', obj_filename, tasksys_obj_path],
-#                 encoding='utf-8',
-#                 capture_output=True)
-#     elif target == 'opencl':
-#         code = codegen_opencl.codegen_opencl(structs, funcs)
-#         # add atomic add (taken from https://gist.github.com/PolarNick239/9dffaf365b332b4442e2ac63b867034f)
-#         code = """
-# static float atomic_cmpxchg_f32(volatile __global float *p, float cmp, float val) {
-#     union {
-#         unsigned int u32;
-#         float        f32;
-#     } cmp_union, val_union, old_union;
-
-#     cmp_union.f32 = cmp;
-#     val_union.f32 = val;
-#     old_union.u32 = atomic_cmpxchg((volatile __global unsigned int *) p, cmp_union.u32, val_union.u32);
-#     return old_union.f32;
-# }
-
-# static float cl_atomic_add(volatile __global float *p, float val) {
-#     float found = *p;
-#     float expected;
-#     do {
-#         expected = found;
-#         found = atomic_cmpxchg_f32(p, expected, expected + val);
-#     } while (found != expected);
-#     return found;
-# }
-#         \n""" + code
-
-#         print('Generated OpenCL code:')
-#         print(code)
-        
-#         kernel_names = [func_name for func_name, func in funcs.items() if func.is_simd]
-#         lib = cl_utils.cl_compile(opencl_context,
-#                                   opencl_device,
-#                                   opencl_command_queue,
-#                                   code,
-#                                   kernel_names)
-#     else:
-#         assert False, f'unrecognized compilation target {target}'
-
-#     # Sort the struct topologically
-#     sorted_structs_list = topo_sort_structs(structs)
-
-#     # build ctypes structs/classes
-#     ctypes_structs = {}
-#     for s in sorted_structs_list:
-#         ctypes_structs[s.id] = type(s.id, (ctypes.Structure, ), {
-#             '_fields_': [(m.id, loma_to_ctypes_type(m.t, ctypes_structs)) for m in s.members]
-#         })
-
-#     # load the dynamic library
-#     if target == 'c' or target == 'ispc':
-#         lib = CDLL(os.path.join(os.getcwd(), output_filename))
-#         for f in funcs.values():
-#             if target == 'ispc':
-#                 # only process SIMD functions
-#                 if not f.is_simd:
-#                     continue
-#             c_func = getattr(lib, f.id)
-#             argtypes = [loma_to_ctypes_type(arg, ctypes_structs) for arg in f.args]
-#             # for simd functions, the last argument is the number of threads
-#             if f.is_simd:
-#                 argtypes.append(ctypes.c_int)
-#             c_func.argtypes = argtypes
-#             c_func.restype = loma_to_ctypes_type(f.ret_type, ctypes_structs)
-
-#     return ctypes_structs, lib
+    return ctype_dfloat, lib

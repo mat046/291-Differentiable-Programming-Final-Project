@@ -10,4 +10,4 @@ if __name__ == '__main__':
     with open('float_constant_test.py') as f:
         compiler.compile(f.read(),
                             target = 'c',
-                            output_filename = '_code/float_constant_test.cpp')
+                            output_cpp_filename = '_code/float_constant_test.cpp')

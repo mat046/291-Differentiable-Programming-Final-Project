@@ -14,4 +14,4 @@ if __name__ == '__main__':
     with open('parse_test.py') as f:
         compiler.compile(f.read(),
                             target = 'c',
-                            output_filename = '_code/parse_test.cpp')
+                            output_cpp_filename = '_code/parse_test.cpp')
