@@ -218,7 +218,7 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 return ret
             case floma_diff_ir.ContExpr():
                 captures = '[' + ','.join(['&' + c for c in node.captures]) + ']'
-                parameter = '(' + type_to_string(node.argument.t) + " " + node.argument.id + ')'
+                parameter = '(' + type_to_string(node.argument.t) + "& " + node.argument.id + ')'
                 
                 self.tab_count += 1
                 tabs = '\t' * self.tab_count

@@ -23,8 +23,8 @@ void func(float x, float y) {
 }
 
 void d_func(_dfloat& x, _dfloat& y, const std::function<void(_dfloat&)>& k) {
-	d_mulf(x,y,[&x,&y,&k](_dfloat t1)
-		-> void{d_divf(x,y,[&x,&y,&k,&t1](_dfloat t0)
+	d_mulf(x,y,[&x,&y,&k](_dfloat& t1)
+		-> void{d_divf(x,y,[&x,&y,&k,&t1](_dfloat& t0)
 			-> void{d_addf(t1,t0,k);});});
 }
 
