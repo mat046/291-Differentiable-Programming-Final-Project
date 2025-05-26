@@ -358,7 +358,6 @@ def reverse_diff(#diff_func_id : str,
                     assert False, f'Unsupported return type for function {node.id}'
             new_args.append(new_arg)
             self.params_.append(new_arg.id)
-            node.ret_type = None
 
             return new_args
 

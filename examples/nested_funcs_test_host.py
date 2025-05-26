@@ -1,0 +1,13 @@
+import os
+import sys
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+import compiler
+import ctypes
+
+if __name__ == '__main__':
+    with open('nested_funcs_test.py') as f:
+        compiler.compile(f.read(),
+                            target = 'c',
+                            output_filename = '_code/nested_funcs_test.cpp')
