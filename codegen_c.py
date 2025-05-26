@@ -14,8 +14,7 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
         case floma_diff_ir.Arg():
             if isinstance(node.t, floma_diff_ir.Struct): # dfloat
                 return type_to_string(node.t) + '&'
-            else:
-                return 
+            return type_to_string(node.t)
         # case floma_diff_ir.Int():
         #     return 'int'
         case floma_diff_ir.Float():
@@ -279,10 +278,10 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
             if i > 0:
                 code += ', '
             code += f'{type_to_string(arg)} {arg.id}'
-        if f.is_simd:
-            if len(f.args) > 0:
-                code += ', '
-            code += 'int __total_work'
+        # if f.is_simd:
+        #     if len(f.args) > 0:
+        #         code += ', '
+        #     code += 'int __total_work'
         code += ');\n'
 
     for f in funcs.values():
