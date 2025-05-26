@@ -247,7 +247,7 @@ def reverse_diff(#diff_func_id : str,
             self.arg_idx_ : int = arg_idx
 
         @staticmethod
-        def get_call_pairs_and_mutate_signatures(parent : floma_diff_ir.Call) -> tuple[list[ParentChildCallPair], floma_diff_ir.Call]:
+        def get_call_pairs_and_mutate_signatures(parent : floma_diff_ir.expr) -> tuple[list[ParentChildCallPair], floma_diff_ir.Call]:
             """
             The body of the function to be differentiated is a bunch of nested function calls.
             We need to traverse these functions in a particular order while differentiating.
@@ -256,10 +256,26 @@ def reverse_diff(#diff_func_id : str,
             We also mutate the name of the functions to their differentiated counterpart
             and add the continuation argument to them.
             """
-            
-            if not isinstance(parent, floma_diff_ir.Call):
-                new_node = copy.deepcopy(parent)
-                return [], new_node
+
+            match parent:
+                case floma_diff_ir.ConstFloat():
+                    new_node = floma_diff_ir.Call(
+                        id="make__dfloat",
+                        args=[
+                            floma_diff_ir.ConstFloat(val=parent.val),
+                            floma_diff_ir.ConstFloat(0.0)
+                        ],
+                        lineno=parent.lineno,
+                        t=dfloat
+                    )
+                    return [], new_node
+                case floma_diff_ir.Var():
+                    new_node = copy.deepcopy(parent)
+                    return [], new_node
+                case floma_diff_ir.Call():
+                    pass
+                case _:
+                    assert False, f"argument {parent} in {func.id} is not a supported type"
             
             pccp_list = []
             new_args = []
@@ -290,6 +306,10 @@ def reverse_diff(#diff_func_id : str,
             # create new parent child call pair
             for idx, arg in enumerate(new_parent.args):
                 if not isinstance(arg, floma_diff_ir.Call):
+                    continue
+                
+                # 
+                if arg.id == "make__dfloat":
                     continue
 
                 pccp = ParentChildCallPair(child=arg, parent=new_parent, arg_idx=idx)
