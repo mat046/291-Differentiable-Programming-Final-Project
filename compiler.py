@@ -3,7 +3,7 @@ import autodiff
 import ctypes
 from ctypes import CDLL
 import check
-# import codegen_c
+import codegen_c
 # import codegen_ispc
 # import codegen_opencl
 import inspect
@@ -117,18 +117,18 @@ def compile(loma_code : str,
             print(e.to_string())
         raise e
 
-    if output_filename is not None:
-        # + .dll or + .so
-        output_filename = output_filename + distutils.ccompiler.new_compiler().shared_lib_extension
-        pathlib.Path(os.path.dirname(output_filename)).mkdir(parents=True, exist_ok=True)
+    # if output_filename is not None:
+    #     # + .dll or + .so
+    #     output_filename = output_filename + distutils.ccompiler.new_compiler().shared_lib_extension
+    #     pathlib.Path(os.path.dirname(output_filename)).mkdir(parents=True, exist_ok=True)
 
     # Generate and compile the code
     if target == 'c':
-        code = codegen_c.codegen_c(structs, funcs)
+        code = codegen_c.codegen_c(dfloat, funcs)
         # add standard headers
-        code = """
-#include <math.h>
-        \n""" + code
+#         code = """
+# #include <math.h>
+#         \n""" + code
 
         print('Generated C code:')
         print(code)
