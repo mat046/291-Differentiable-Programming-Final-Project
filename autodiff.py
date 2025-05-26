@@ -279,7 +279,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
     funcs['d_subf'] = floma_diff_ir.FunctionDef(
         id='d_subf',
-        args=bin_op_args,
+        args=diff_bin_op_args,
         body=[
             # ret = make__dfloat(x.val - y.val, 0)
             declare_ret(floma_diff_ir.Sub()),
