@@ -372,8 +372,10 @@ def reverse_diff(#diff_func_id : str,
             self.lambda_count_ = 0
 
             new_call = self.mutate_expr(node.call)
-            node.call = new_call
-            return node
+            new_call_stmt = floma_diff_ir.CallStmt(
+                call=new_call
+            )
+            return new_call_stmt
 
         # def mutate_const_float(self, node):
         #     # TODO:

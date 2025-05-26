@@ -99,11 +99,12 @@ class CCodegenVisitor(irvisitor.IRVisitor):
         #     self.code += f'{type_to_string(node.t.t)} {node.target}[{node.t.static_size}]'
         self.code += f'{type_to_string(node.t)} {node.target}'
         if node.val is not None:
-            self.code += f' = {self.visit_expr(node.val)};\n'
-        else:
-            # self.code += ';\n'
-            # self.init_zero(node.target, node.t)
-            assert False, "Declaration statements should initialize objects"
+            self.code += f' = {self.visit_expr(node.val)}'#\n'
+        # else:
+        #     # self.code += ';\n'
+        #     # self.init_zero(node.target, node.t)
+        #     assert False, "Declaration statements should initialize objects"
+        self.code += ';\n'
 
     def visit_assign(self, node):
         self.emit_tabs()
@@ -152,7 +153,7 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 #     return '(*' + node.id + ')'
                 # else:
                 #     return node.id
-                node.id
+                return node.id
             case floma_diff_ir.StructAccess():
                 return f'({self.visit_expr(node.struct)}).{node.member_id}'
             case floma_diff_ir.ConstFloat():
@@ -212,16 +213,7 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 #     func_id = '(int)'
 
                 ret = f'{func_id}('
-                if func_id in self.func_defs:
-                    func_def = self.func_defs[func_id]
-                    arg_strs = [self.visit_expr(arg) for arg in node.args]
-                    # for i, arg in enumerate(arg_strs):
-                    #     if func_def.args[i].i == floma_diff_ir.Out() and \
-                    #             (not isinstance(func_def.args[i].t, floma_diff_ir.Array)):
-                    #         arg_strs[i] = '&(' + arg + ')'
-                    ret += ','.join(arg_strs)
-                else:
-                    ret += ','.join([self.visit_expr(arg) for arg in node.args])
+                ret += ','.join([self.visit_expr(arg) for arg in node.args])
                 ret += ')'
                 return ret
             case floma_diff_ir.ContExpr():
