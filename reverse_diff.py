@@ -247,7 +247,7 @@ def reverse_diff(#diff_func_id : str,
             self.arg_idx_ : int = arg_idx
 
         @staticmethod
-        def get_call_pairs_and_mutate_signatures(parent : floma_diff_ir.Call) -> list[ParentChildCallPair]:
+        def get_call_pairs_and_mutate_signatures(parent : floma_diff_ir.Call) -> tuple[list[ParentChildCallPair], floma_diff_ir.Call]:
             """
             The body of the function to be differentiated is a bunch of nested function calls.
             We need to traverse these functions in a particular order while differentiating.
@@ -257,34 +257,46 @@ def reverse_diff(#diff_func_id : str,
             and add the continuation argument to them.
             """
             
-            assert isinstance(parent, floma_diff_ir.Call)
-
-            # get list of call pairs
-            pccp_list = []
-            for idx, child in enumerate(parent.args):
-                if not isinstance(child, floma_diff_ir.Call):
-                    continue
-
-                pccp = ParentChildCallPair(child=child, parent=parent, arg_idx=idx)
-                pccp_list.append(pccp)
-
-                child_pccp_list = ParentChildCallPair.get_call_pairs_and_mutate_signatures(child)
-                pccp_list += child_pccp_list
+            if not isinstance(parent, floma_diff_ir.Call):
+                new_node = copy.deepcopy(parent)
+                return [], new_node
             
-            # change function signatures to diff type
+            pccp_list = []
+            new_args = []
+
+            # get list of call pairs from nested function calls, as well as mutated arguments
+            for arg in parent.args:
+                new_list, new_arg = ParentChildCallPair.get_call_pairs_and_mutate_signatures(arg)
+                pccp_list += new_list
+                new_args.append(new_arg)
+            
+            # add continuation lambda to arguments
             t = funcs_dict[parent.id].ret_type
             if isinstance(t, floma_diff_ir.Float):
                 continuation = floma_diff_ir.Var(
                     id='k', 
                     t=floma_diff_ir.Cont(arg_type=dfloat)
                 )
-                parent.args.append(continuation)
-            parent.ret_type = None
+                new_args.append(continuation)
 
-            diff_func_name = func_to_rev[parent.id]
-            parent.id = diff_func_name
+            # get new parent function call
+            new_parent = floma_diff_ir.Call(
+                id=func_to_rev[parent.id],
+                args=new_args,
+                lineno=parent.lineno,
+                t=None
+            )
             
-            return pccp_list
+            # create new parent child call pair
+            for idx, arg in enumerate(new_parent.args):
+                if not isinstance(arg, floma_diff_ir.Call):
+                    continue
+
+                pccp = ParentChildCallPair(child=arg, parent=new_parent, arg_idx=idx)
+                pccp_list = [pccp] + pccp_list
+
+            
+            return pccp_list, new_parent
 
 
     # Apply the differentiation.
@@ -355,8 +367,7 @@ def reverse_diff(#diff_func_id : str,
         #     return super().mutate_ifelse(node)
 
         def mutate_call_stmt(self, node):
-            self.call_pairs_ = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.call)
-            self.head_ = self.call_pairs_[0].parent_
+            self.call_pairs_, self.head_ = ParentChildCallPair.get_call_pairs_and_mutate_signatures(node.call)
             self.conts_ = []
             self.lambda_count_ = 0
 
