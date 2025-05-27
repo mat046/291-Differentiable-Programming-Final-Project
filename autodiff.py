@@ -104,7 +104,7 @@ def replace_diff_types(func : floma_diff_ir.FunctionDef) -> floma_diff_ir.Functi
             return floma_diff_ir.Declare(\
                 node.target,
                 _replace_diff_type(node.t),
-                self.mutate_expr(node.val) if node.val is not None else None,
+                # self.mutate_expr(node.val) if node.val is not None else None,
                 lineno = node.lineno)
 
     return DiffTypeMutator().mutate_function(func)
@@ -146,7 +146,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
             id='make__dfloat',
             args = [floma_diff_ir.Arg('val', floma_diff_ir.Float()),
                     floma_diff_ir.Arg('dval', floma_diff_ir.Float())],
-            body = [floma_diff_ir.Declare('ret', dfloat),
+            body = [floma_diff_ir.Declare(target='ret', t=dfloat, dyn_alloc=True),
                     floma_diff_ir.Assign(floma_diff_ir.StructAccess(floma_diff_ir.Var('ret'), 'val'), floma_diff_ir.Var('val')),
                     floma_diff_ir.Assign(floma_diff_ir.StructAccess(floma_diff_ir.Var('ret'), 'dval'), floma_diff_ir.Var('dval')),
                     floma_diff_ir.Return(floma_diff_ir.Var('ret'))],
@@ -155,17 +155,26 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     funcs['make__const__dfloat'] = floma_diff_ir.FunctionDef(
         id='make__const__dfloat',
         args=[floma_diff_ir.Arg('val', floma_diff_ir.Float())],
+        # body=[
+        #     floma_diff_ir.Declare(target='temp', t=dfloat, dyn_alloc=True),
+        #     floma_diff_ir.Assign(
+        #         target=floma_diff_ir.Var(id='temp',t=dfloat),
+        #         val=floma_diff_ir.Call(
+        #             id='make__dfloat',
+        #             args=[floma_diff_ir.Var(id='val', t=floma_diff_ir.Float()),
+        #                   floma_diff_ir.ConstFloat(val=0.0)],
+        #         )
+        #     ),
+        #     floma_diff_ir.Return(val=floma_diff_ir.Var(id='temp', t=dfloat))],
         body=[
-            floma_diff_ir.Declare('temp', dfloat, is_static_var=True),
-            floma_diff_ir.Assign(
-                target=floma_diff_ir.Var(id='temp',t=dfloat),
+            floma_diff_ir.Return(
                 val=floma_diff_ir.Call(
                     id='make__dfloat',
-                    args=[floma_diff_ir.Var(id='val', t=floma_diff_ir.Float()),
-                          floma_diff_ir.ConstFloat(val=0.0)],
+                    args=[floma_diff_ir.Var(id='val'), floma_diff_ir.ConstFloat(0.0)],
+                    t=dfloat
                 )
-            ),
-            floma_diff_ir.Return(val=floma_diff_ir.Var(id='temp', t=dfloat))],
+            )
+        ],
         ret_type=dfloat
     )
 

@@ -156,12 +156,12 @@ PYBIND11_MODULE(test_floma_module, m) {
         if platform.system() == 'Windows':
             assert False, "Windows is currently not a supported platform"
         else:
-            log = run(['g++', '-shared', '-fPIC', '-o', output_filename, '-O2', '-x', 'c++', '-'],
-                input = code,
-                encoding='utf-8',
-                capture_output=True)
-            if log.returncode != 0:
-                print(log.stderr)
+            # log = run(['g++', '-shared', '-fPIC', '-o', output_filename, '-O2', '-x', 'c++', '-'],
+            #     input = code,
+            #     encoding='utf-8',
+            #     capture_output=True)
+            # if log.returncode != 0:
+            #     print(log.stderr)
             
             if output_cpp_filename != None:
                 pathlib.Path(os.path.dirname(output_cpp_filename)).mkdir(parents=True, exist_ok=True)
@@ -184,23 +184,23 @@ PYBIND11_MODULE(test_floma_module, m) {
     #         '_fields_': [(m.id, loma_to_ctypes_type(m.t)) for m in dfloat]
     #     }
     # )
-    class _dfloat(ctypes.Structure):
-        _fields_ = [
-            ('val', ctypes.c_float),
-            ('dval', ctypes.c_float)
-        ]
+    # class _dfloat(ctypes.Structure):
+    #     _fields_ = [
+    #         ('val', ctypes.c_float),
+    #         ('dval', ctypes.c_float)
+    #     ]
 
-    # load the dynamic library
-    lib = CDLL(os.path.join(os.getcwd(), output_filename))
-    func_name_to_symbol = find_function_symbol(output_filename, [f.id for f in funcs.values()])
-    for f in funcs.values():
-        symbol = func_name_to_symbol[f.id]
-        c_func = getattr(lib, symbol)
-        argtypes = [ctypes.POINTER(loma_to_ctypes_type(arg, _dfloat)) for arg in f.args]
-        c_func.argtypes = argtypes
-        restype = loma_to_ctypes_type(f.ret_type, _dfloat)
-        if f.id == "make__const__dfloat":
-            restype = ctypes.POINTER(restype)
-        c_func.restype = restype
+    # # load the dynamic library
+    # lib = CDLL(os.path.join(os.getcwd(), output_filename))
+    # func_name_to_symbol = find_function_symbol(output_filename, [f.id for f in funcs.values()])
+    # for f in funcs.values():
+    #     symbol = func_name_to_symbol[f.id]
+    #     c_func = getattr(lib, symbol)
+    #     argtypes = [ctypes.POINTER(loma_to_ctypes_type(arg, _dfloat)) for arg in f.args]
+    #     c_func.argtypes = argtypes
+    #     restype = loma_to_ctypes_type(f.ret_type, _dfloat)
+    #     if f.id == "make__const__dfloat":
+    #         restype = ctypes.POINTER(restype)
+    #     c_func.restype = restype
 
-    return _dfloat, lib, func_name_to_symbol
+    # return _dfloat, lib, func_name_to_symbol

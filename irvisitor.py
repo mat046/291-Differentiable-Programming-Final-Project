@@ -52,8 +52,9 @@ class IRVisitor:
         self.visit_expr(node.val)
 
     def visit_declare(self, node):
-        if node.val is not None:
-            self.visit_expr(node.val)
+        pass
+        # if node.val is not None:
+        #     self.visit_expr(node.val)
 
     def visit_assign(self, node):
         self.visit_expr(node.val)

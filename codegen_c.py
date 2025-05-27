@@ -12,8 +12,8 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
 
     match node:
         case floma_diff_ir.Arg():
-            if isinstance(node.t, floma_diff_ir.Struct): # dfloat
-                return type_to_string(node.t) + '&'
+            # if isinstance(node.t, floma_diff_ir.Struct): # dfloat
+            #     return type_to_string(node.t) + '*'
             return type_to_string(node.t)
         # case floma_diff_ir.Int():
         #     return 'int'
@@ -22,9 +22,9 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
         # case floma_diff_ir.Array():
         #     return type_to_string(node.t) + '*'
         case floma_diff_ir.Struct():
-            return node.id
+            return "std::shared_ptr<" + node.id + ">"
         case floma_diff_ir.Cont():
-            return "const std::function<void(_dfloat&)>&"
+            return "const std::function<void(std::shared_ptr<_dfloat>)>&"
         case None:
             return 'void'
         case _:
@@ -48,8 +48,8 @@ class CCodegenVisitor(irvisitor.IRVisitor):
 
     def visit_function_def(self, node):
         ret_type = type_to_string(node.ret_type)
-        if node.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
-            ret_type += '&'
+        # if node.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
+        #     ret_type += '&'
         self.code += f'{ret_type} {node.id}('
         
         for i, arg in enumerate(node.args):
@@ -99,16 +99,22 @@ class CCodegenVisitor(irvisitor.IRVisitor):
         #     # Special rule for arrays
         #     assert node.t.static_size != None
         #     self.code += f'{type_to_string(node.t.t)} {node.target}[{node.t.static_size}]'
-        if node.is_static_var:
-            self.code += 'thread_local '
+
+        # if node.is_static_var:
+        #     self.code += 'thread_local '
         self.code += f'{type_to_string(node.t)} {node.target}'
-        if node.val is not None:
+        # currently, cant dyn alloc and initialize variables
+        if node.dyn_alloc: # specifally for dfloats
+            self.code += f' = std::make_shared<{node.t.id}>()'
+        elif node.val is not None:
             self.code += f' = {self.visit_expr(node.val)}'#\n'
+        self.code += ';\n'
+
         # else:
         #     # self.code += ';\n'
         #     # self.init_zero(node.target, node.t)
         #     assert False, "Declaration statements should initialize objects"
-        self.code += ';\n'
+        
 
     def visit_assign(self, node):
         self.emit_tabs()
@@ -159,7 +165,7 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 #     return node.id
                 return node.id
             case floma_diff_ir.StructAccess():
-                return f'({self.visit_expr(node.struct)}).{node.member_id}'
+                return f'({self.visit_expr(node.struct)})->{node.member_id}'
             case floma_diff_ir.ConstFloat():
                 return f'(float)({node.val})'
             # case floma_diff_ir.ConstInt():
@@ -221,8 +227,8 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 ret += ')'
                 return ret
             case floma_diff_ir.ContExpr():
-                captures = '[' + ','.join(['&' + c for c in node.captures]) + ']'
-                parameter = '(' + type_to_string(node.argument.t) + "& " + node.argument.id + ')'
+                captures = '[' + ','.join([c for c in node.captures]) + ']'
+                parameter = '(' + type_to_string(node.argument.t) + node.argument.id + ')'
                 
                 self.tab_count += 1
                 tabs = '\t' * self.tab_count
@@ -270,8 +276,8 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
     # Forward declaration of functions
     for f in funcs.values():
         ret_type = type_to_string(f.ret_type)
-        if f.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
-            ret_type += '&'
+        # if f.id == 'make__const__dfloat': # make__const__dfloat needs to return an lvalue ref
+        #     ret_type += '&'
         code += f'{ret_type} {f.id}('
         for i, arg in enumerate(f.args):
             if i > 0:
@@ -285,5 +291,5 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
         cg.visit_function(f)
         code += cg.code
         code += '\n'
-        
+
     return code
