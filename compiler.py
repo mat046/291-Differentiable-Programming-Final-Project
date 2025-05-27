@@ -23,51 +23,6 @@ import distutils.ccompiler
 import subprocess
 import copy
 
-# def loma_to_ctypes_type(t : floma_diff_ir.type | floma_diff_ir.arg, \
-#                         _dfloat : ctypes.Structure) -> ctypes.Structure:
-#     """ Given a loma type, maps to the corresponding ctypes type by
-#         looking up ctypes_structs
-#     """
-
-#     match t:
-#         case floma_diff_ir.Arg():
-#             return loma_to_ctypes_type(t.t, _dfloat)
-#         # case floma_diff_ir.Int():
-#         #     return ctypes.c_int
-#         case floma_diff_ir.Float():
-#             return ctypes.c_float
-#         case floma_diff_ir.Struct():
-#             return _dfloat
-#         case floma_diff_ir.Cont():
-#             return ctypes.CFUNCTYPE(None, ctypes.POINTER(_dfloat))
-#         case None:
-#             return None
-#         case _:
-#             assert False
-
-
-# def get_function_symbols(so_file : str) -> list[str]:
-#     symbol_output = subprocess.run(
-#             ['nm', '-D', '--defined-only', so_file],
-#             stdout=subprocess.PIPE,
-#             text=True
-#         ).stdout
-#     symbols_table = [line for line in symbol_output.splitlines()]
-#     split_cols = [line.split(" ") for line in symbols_table]
-#     symbols_list = [line[2] for line in split_cols]
-#     return symbols_list
-
-# def find_function_symbol(so_file_path : str, func_names : list[str]) -> dict[str, str]:
-#     symbols_list = get_function_symbols(so_file_path)
-    
-#     func_name_to_symbol = {}
-#     for n in func_names:
-#         matches = [smbl for smbl in symbols_list if n in smbl]
-#         match = min(matches, key=len)
-#         func_name_to_symbol[n] = match
-
-#     return func_name_to_symbol
-
 
 def define_interface(funcs : list[floma_diff_ir.FunctionDef]) -> str:
     code = ""
@@ -98,7 +53,6 @@ def compile(loma_code : str,
             This is entirely optional - use for debugging purposes.
     """
 
-    # 
     interfaces : set[str]
 
     # The compiler passes
@@ -156,7 +110,7 @@ def compile(loma_code : str,
         # add pybind11 module; used to turn cpp file into an importable python module
         code += """
 namespace py = pybind11;
-\n\n
+\n
 """
 
         code += f"PYBIND11_MODULE({module_name}, m) " + "{"
@@ -189,13 +143,6 @@ namespace py = pybind11;
         if platform.system() == 'Windows':
             assert False, "Windows is currently not a supported platform"
         else:
-            # log = run(['g++', '-shared', '-fPIC', '-o', output_filename, '-O2', '-x', 'c++', '-'],
-            #     input = code,
-            #     encoding='utf-8',
-            #     capture_output=True)
-            # if log.returncode != 0:
-            #     print(log.stderr)
-
             includes = subprocess.check_output(["python3", "-m", "pybind11", "--includes"], text=True).strip()
             includes_list = includes.split()
 
@@ -217,37 +164,3 @@ namespace py = pybind11;
     else:
         assert False, f'unrecognized compilation target {target}'
 
-    # # build ctypes structs/classes
-    # ctypes_structs = {}
-    # for s in sorted_structs_list:
-    #     ctypes_structs[s.id] = type(s.id, (ctypes.Structure, ), {
-    #         '_fields_': [(m.id, loma_to_ctypes_type(m.t, ctypes_structs)) for m in s.members]
-    #     })
-    
-    # ctype_dfloat = type(
-    #     dfloat.id,
-    #     (ctypes.Structure,),
-    #     {
-    #         '_fields_': [(m.id, loma_to_ctypes_type(m.t)) for m in dfloat]
-    #     }
-    # )
-    # class _dfloat(ctypes.Structure):
-    #     _fields_ = [
-    #         ('val', ctypes.c_float),
-    #         ('dval', ctypes.c_float)
-    #     ]
-
-    # # load the dynamic library
-    # lib = CDLL(os.path.join(os.getcwd(), output_filename))
-    # func_name_to_symbol = find_function_symbol(output_filename, [f.id for f in funcs.values()])
-    # for f in funcs.values():
-    #     symbol = func_name_to_symbol[f.id]
-    #     c_func = getattr(lib, symbol)
-    #     argtypes = [ctypes.POINTER(loma_to_ctypes_type(arg, _dfloat)) for arg in f.args]
-    #     c_func.argtypes = argtypes
-    #     restype = loma_to_ctypes_type(f.ret_type, _dfloat)
-    #     if f.id == "make__const__dfloat":
-    #         restype = ctypes.POINTER(restype)
-    #     c_func.restype = restype
-
-    # return _dfloat, lib, func_name_to_symbol

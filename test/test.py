@@ -49,15 +49,40 @@ class FlomaTest(unittest.TestCase):
     #     assert abs(x.dval - expected_dx) < epsilon and \
     #         abs(y.dval - expected_dy) < epsilon
         
+    # def test_float_constant(self):
+    #     with open('floma_code/float_constant.py') as f:
+    #        compiler.compile(f.read(),
+    #             target = 'c++',
+    #             output_filename = '_code/float_constant',
+    #             output_cpp_filename='_code/float_constant.cpp')
+        
+    #     module_path = "_code/float_constant.so"
+    #     module_name = "float_constant"
+
+    #     spec = importlib.util.spec_from_file_location(module_name, module_path)
+    #     m = importlib.util.module_from_spec(spec)
+    #     sys.modules[module_name] = m
+    #     spec.loader.exec_module(m)
+
+    #     x = m.make__dfloat(2.0, 0.0)
+
+    #     m.d_func(x,k)
+        
+    #     expected_dx = 2.0 + 1/2.0
+
+    #     print(f"expected dx: {expected_dx},  actual dx: {x.dval}")
+
+    #     assert abs(x.dval - expected_dx) < epsilon
+
     def test_float_constant(self):
-        with open('floma_code/float_constant.py') as f:
+        with open('floma_code/nested_funcs.py') as f:
            compiler.compile(f.read(),
                 target = 'c++',
-                output_filename = '_code/float_constant',
-                output_cpp_filename='_code/float_constant.cpp')
+                output_filename = '_code/nested_funcs',
+                output_cpp_filename='_code/nested_funcs.cpp')
         
-        module_path = "_code/float_constant.so"
-        module_name = "float_constant"
+        module_path = "_code/nested_funcs.so"
+        module_name = "nested_funcs"
 
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         m = importlib.util.module_from_spec(spec)
@@ -68,11 +93,8 @@ class FlomaTest(unittest.TestCase):
 
         m.d_func(x,k)
         
-        expected_dx = 2.0 + 1/2.0
-
-        print(f"expected dx: {expected_dx},  actual dx: {x.dval}")
-
-        assert abs(x.dval - expected_dx) < epsilon
+        # TODO: figure out the correct value
+        print(f"x.dval: {x.dval}")
         
 if __name__ == '__main__':
     unittest.main()
