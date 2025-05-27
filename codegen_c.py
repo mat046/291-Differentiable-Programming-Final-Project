@@ -285,4 +285,5 @@ def codegen_c(dfloat : floma_diff_ir.Struct,
         cg.visit_function(f)
         code += cg.code
         code += '\n'
+        
     return code
