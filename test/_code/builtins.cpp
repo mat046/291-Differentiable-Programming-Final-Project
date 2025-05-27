@@ -1,5 +1,6 @@
 
 #include <functional>
+#include <stdio.h>
         
 typedef struct {
 	float val;
@@ -84,5 +85,21 @@ void d_divf(_dfloat& x, _dfloat& y, const std::function<void(_dfloat&)>& k) {
 	k(ret);
 	(x).dval = ((x).dval) + (((ret).dval) / ((y).val));
 	(y).dval = ((y).dval) + (((float)(-1.0)) * ((((ret).dval) * ((x).val)) / (((y).val) * ((y).val))));
+}
+
+#include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(test_module, m) {
+    py::class_<_dfloat>(m, "_dfloat")
+        .def(py::init<>())
+        .def_readwrite("val", &_dfloat::val)
+        .def_readwrite("dval", &_dfloat::dval);
+
+    m.def("make__dfloat", &make__dfloat);
+    m.def("make__const__dfloat", &make__const__dfloat, py::return_value_policy::reference);
+    m.def("d_func", &d_func, py::arg("x"), py::arg("y"), py::arg("k"));
 }
 
