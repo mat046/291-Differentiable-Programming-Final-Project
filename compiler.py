@@ -21,6 +21,7 @@ import error
 import platform
 import distutils.ccompiler
 import subprocess
+import copy
 
 # def loma_to_ctypes_type(t : floma_diff_ir.type | floma_diff_ir.arg, \
 #                         _dfloat : ctypes.Structure) -> ctypes.Structure:
@@ -128,11 +129,17 @@ def compile(loma_code : str,
             print('[Error] error found after automatic differentiation:')
             print(e.to_string())
         raise e
-
+    
+    module_name : str
     if output_filename is not None:
+        module_name = copy.deepcopy(output_filename).split("/")[-1]
         # + .dll or + .so
         output_filename = output_filename + distutils.ccompiler.new_compiler().shared_lib_extension
         pathlib.Path(os.path.dirname(output_filename)).mkdir(parents=True, exist_ok=True)
+    else:
+        assert False, "Need to specify an output file"
+    
+    
 
     # Generate and compile the code
     if target == 'c++':
@@ -149,8 +156,12 @@ def compile(loma_code : str,
         # add pybind11 module; used to turn cpp file into an importable python module
         code += """
 namespace py = pybind11;
+\n\n
+"""
 
-PYBIND11_MODULE(test_floma_module, m) {
+        code += f"PYBIND11_MODULE({module_name}, m) " + "{"
+
+        code += """
     py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
@@ -185,6 +196,20 @@ PYBIND11_MODULE(test_floma_module, m) {
             #     capture_output=True)
             # if log.returncode != 0:
             #     print(log.stderr)
+
+            includes = subprocess.check_output(["python3", "-m", "pybind11", "--includes"], text=True).strip()
+            includes_list = includes.split()
+
+            cmd = [
+                "g++", "-O3", "-shared", "-std=c++17", "-fPIC",
+                *includes_list,
+                "-x", "c++", "-",
+                "-o", output_filename
+            ]
+
+            log = subprocess.run(cmd, input=code, text=True, check=True)
+            if log.returncode != 0:
+                print(log.stderr)
             
             if output_cpp_filename != None:
                 pathlib.Path(os.path.dirname(output_cpp_filename)).mkdir(parents=True, exist_ok=True)

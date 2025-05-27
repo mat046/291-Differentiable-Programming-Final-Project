@@ -9,11 +9,12 @@ import ctypes
 import error
 import math
 import unittest
+import importlib
 
 epsilon = 1e-4
 
-def adj_equals_one(ret):
-    ret.contents.dval = 1
+def k(ret):
+    ret.dval = 1
 
 class FlomaTest(unittest.TestCase):
     def setUp(self):
@@ -21,20 +22,24 @@ class FlomaTest(unittest.TestCase):
 
     def test_builtins(self):
         with open('floma_code/builtins.py') as f:
-            _dfloat, lib, func_name_to_symbols = compiler.compile(f.read(),
-                                                    target = 'c++',
-                                                    output_filename = '_code/builtins',
-                                                    output_cpp_filename='_code/builtins.cpp')
-        x = _dfloat(-3.0, 0.0)
-        y = _dfloat(5.0, 0.0)
+           compiler.compile(f.read(),
+                target = 'c++',
+                output_filename = '_code/builtins',
+                output_cpp_filename='_code/builtins.cpp')
+        
+        module_path = "_code/builtins.so"
+        module_name = "builtins"  # name you'll use to refer to it
 
-        set_adj_to_one = ctypes.CFUNCTYPE(None, ctypes.POINTER(_dfloat))
-        k = set_adj_to_one(adj_equals_one)
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        m = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = m
+        spec.loader.exec_module(m)
 
-        symbol = func_name_to_symbols["d_func"]
-        f = getattr(lib, symbol)
-        f(ctypes.byref(x), ctypes.byref(y), k)
+        x = m.make__dfloat(-3.0, 0.0)
+        y = m.make__dfloat(5.0, 0.0)
 
+        m.d_func(x,y,k)
+        
         expected_dx = 5.0 + 1/5.0
         expected_dy = (-3.0) - (-3.0)/(5.0**2)
 

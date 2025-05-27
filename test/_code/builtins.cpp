@@ -90,18 +90,9 @@ void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 
 namespace py = pybind11;
 
-// PYBIND11_MODULE(test_floma_module, m) {
-//     py::class_<_dfloat>(m, "_dfloat")
-//         .def(py::init<>())
-//         .def_readwrite("val", &_dfloat::val)
-//         .def_readwrite("dval", &_dfloat::dval);
 
-//     m.def("make__dfloat", &make__dfloat);
-//     m.def("make__const__dfloat", &make__const__dfloat, py::return_value_policy::reference);
-//     m.def("d_func", &d_func);
-// }
 
-PYBIND11_MODULE(test_floma_module, m) {
+PYBIND11_MODULE(builtins, m) {
     py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
@@ -115,7 +106,7 @@ PYBIND11_MODULE(test_floma_module, m) {
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
 
-    m.def("d_func", &d_func,
-          py::arg("x"), py::arg("y"), py::arg("k"),
-          "Differentiated version of func(x, y) in continuation-passing style.");
+m.def("d_func", &d_func,py::arg("x"),py::arg("y"),py::arg("k"));
+
+
 }
