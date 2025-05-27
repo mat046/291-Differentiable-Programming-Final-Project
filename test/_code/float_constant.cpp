@@ -9,8 +9,8 @@ typedef struct {
 	float dval;
 } _dfloat;
 
-float func(float x, float y);
-void d_func(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
+float func(float x);
+void d_func(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 std::shared_ptr<_dfloat> make__dfloat(float val, float dval);
 std::shared_ptr<_dfloat> make__const__dfloat(float val);
 float addf(float x, float y);
@@ -22,13 +22,13 @@ void d_mulf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 float divf(float x, float y);
 void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 
-float func(float x, float y) {
-	return addf(mulf(x,y),divf(x,y));
+float func(float x) {
+	return addf(mulf(x,(float)(2.0)),divf(x,(float)(2.0)));
 }
 
-void d_func(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
-	d_mulf(x,y,[x,y,k](std::shared_ptr<_dfloat>t1)
-		-> void{d_divf(x,y,[x,y,k,t1](std::shared_ptr<_dfloat>t0)
+void d_func(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
+	d_mulf(x,make__const__dfloat((float)(2.0)),[x,k](std::shared_ptr<_dfloat>t1)
+		-> void{d_divf(x,make__const__dfloat((float)(2.0)),[x,k,t1](std::shared_ptr<_dfloat>t0)
 			-> void{d_addf(t1,t0,k);});});
 }
 
@@ -92,7 +92,7 @@ namespace py = pybind11;
 
 
 
-PYBIND11_MODULE(builtins, m) {
+PYBIND11_MODULE(float_constant, m) {
     py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
@@ -106,5 +106,5 @@ PYBIND11_MODULE(builtins, m) {
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
 
-    m.def("d_func", &d_func,py::arg("x"),py::arg("y"),py::arg("k"));
+    m.def("d_func", &d_func,py::arg("x"),py::arg("k"));
 }

@@ -72,10 +72,10 @@ import copy
 def define_interface(funcs : list[floma_diff_ir.FunctionDef]) -> str:
     code = ""
     for f in funcs:
-        code += f"m.def(\"{f.id}\", &{f.id},"
+        code += f"\n    m.def(\"{f.id}\", &{f.id},"
         arg_list = [f"py::arg(\"{a.id}\")" for a in f.args]
         args = ",".join(arg_list)
-        code += args + ");\n\n"
+        code += args + ");"
     return code
 
 
@@ -174,7 +174,6 @@ namespace py = pybind11;
     m.def("make__const__dfloat", &make__const__dfloat,
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
-
 """
         to_be_interfaces = [f for f in funcs.values() if f.id in interfaces]
         code += define_interface(to_be_interfaces)
