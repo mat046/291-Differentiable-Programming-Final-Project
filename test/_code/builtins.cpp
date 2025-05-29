@@ -91,7 +91,6 @@ void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 namespace py = pybind11;
 
 
-
 PYBIND11_MODULE(builtins, m) {
     py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
         .def(py::init<>())

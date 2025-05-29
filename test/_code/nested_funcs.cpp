@@ -23,8 +23,8 @@ float mulf(float x, float y);
 void d_mulf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 float divf(float x, float y);
 void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
-void d_quartic(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 void d_quadruple(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k);
+void d_quartic(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 
 float quartic(float x) {
 	return mulf(mulf(x,x),mulf(x,x));
@@ -98,16 +98,16 @@ void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 	(y)->dval = ((y)->dval) + (((float)(-1.0)) * ((((ret)->dval) * ((x)->val)) / (((y)->val) * ((y)->val))));
 }
 
-void d_quartic(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
-	d_mulf(x,x,[x,k](std::shared_ptr<_dfloat>t1)
-		-> void{d_mulf(x,x,[x,k,t1](std::shared_ptr<_dfloat>t0)
-			-> void{d_mulf(t1,t0,k);});});
-}
-
 void d_quadruple(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
 	d_addf(x,x,[x,k](std::shared_ptr<_dfloat>t1)
 		-> void{d_addf(x,x,[x,k,t1](std::shared_ptr<_dfloat>t0)
 			-> void{d_addf(t1,t0,k);});});
+}
+
+void d_quartic(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
+	d_mulf(x,x,[x,k](std::shared_ptr<_dfloat>t1)
+		-> void{d_mulf(x,x,[x,k,t1](std::shared_ptr<_dfloat>t0)
+			-> void{d_mulf(t1,t0,k);});});
 }
 
 
