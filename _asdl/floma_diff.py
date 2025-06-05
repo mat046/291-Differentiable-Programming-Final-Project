@@ -16,6 +16,8 @@ module floma_diff {
      expr = Var          ( string id )
           | StructAccess ( expr struct, string member_id )
           | ConstFloat   ( float val )
+          | ConstInt     ( int val )
+          | ConstBool    ( bool val )
           | BinaryOp     ( bin_op op, expr left, expr right )
           | Call         ( string id, expr* args )
           | ContExpr     ( expr argument, string* captures, expr? body )
@@ -24,6 +26,8 @@ module floma_diff {
      arg  = Arg ( string id, type t )
 
      type = Float  ( )
+          | Int    ( )
+          | Bool   ( )
           | Struct ( string id, struct_member* members, int? lineno )
           | Cont   ( type arg_type )
 
@@ -241,6 +245,42 @@ class ConstFloat(expr):
 
 
 @_attrs.define
+class ConstInt(expr):
+    val: int
+    lineno: _Optional[int] = None
+    t: _Optional[type] = None
+
+    def __attrs_post_init__(self):
+        if not isinstance(self.val, int):
+            raise TypeError("ConstInt(...) argument 1: " +
+                            "invalid instance of 'int val'")
+        if not (self.lineno is None or isinstance(self.lineno, int)):
+            raise TypeError("ConstInt(...) argument 2: " +
+                            "invalid instance of 'int? lineno'")
+        if not (self.t is None or isinstance(self.t, type)):
+            raise TypeError("ConstInt(...) argument 3: " +
+                            "invalid instance of 'type? t'")
+
+
+@_attrs.define
+class ConstBool(expr):
+    val: bool
+    lineno: _Optional[int] = None
+    t: _Optional[type] = None
+
+    def __attrs_post_init__(self):
+        if not isinstance(self.val, bool):
+            raise TypeError("ConstBool(...) argument 1: " +
+                            "invalid instance of 'bool val'")
+        if not (self.lineno is None or isinstance(self.lineno, int)):
+            raise TypeError("ConstBool(...) argument 2: " +
+                            "invalid instance of 'int? lineno'")
+        if not (self.t is None or isinstance(self.t, type)):
+            raise TypeError("ConstBool(...) argument 3: " +
+                            "invalid instance of 'type? t'")
+
+
+@_attrs.define
 class BinaryOp(expr):
     op: bin_op
     left: expr
@@ -344,6 +384,20 @@ class type:
 
 @_attrs.define
 class Float(type):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Int(type):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Bool(type):
 
     def __attrs_post_init__(self):
         pass

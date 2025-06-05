@@ -231,13 +231,12 @@ def visit_expr(node) -> floma_diff_ir.expr:
         case ast.Name():
             return floma_diff_ir.Var(node.id, lineno = node.lineno)
         case ast.Constant():
-            # if type(node.value) == int:
-            #     return floma_diff_ir.ConstInt(node.value, lineno = node.lineno)  
-            # elif type(node.value) == float:
-            #     return floma_diff_ir.ConstFloat(node.value, lineno = node.lineno)
-            # else:
-            #     assert False, f'Unknown constant type'
-            return floma_diff_ir.ConstFloat(node.value, lineno = node.lineno)
+            if type(node.value) == int:
+                return floma_diff_ir.ConstInt(node.value, lineno = node.lineno)  
+            elif type(node.value) == float:
+                return floma_diff_ir.ConstFloat(node.value, lineno = node.lineno)
+            else:
+                assert False, f'Unknown constant type'
         # case ast.UnaryOp():
         #     if isinstance(node.op, ast.USub):
         #         return floma_diff_ir.BinaryOp(floma_diff_ir.Sub(), floma_diff_ir.ConstInt(0), visit_expr(node.operand), lineno = node.lineno)

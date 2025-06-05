@@ -11,7 +11,7 @@ def generate_asdl_file():
 
 #  ADT("""
 #     module floma {
-#      func = FunctionDef ( string id, arg* args, stmt body, type? ret_type )
+#      func = FunctionDef ( string id, arg* args, stmt body, type ret_type )
 #           | ReverseDiff ( string id, string primal_func )
 #           attributes  ( int? lineno )
      
@@ -20,12 +20,16 @@ def generate_asdl_file():
 
 #      expr = Var          ( string id )
 #           | ConstFloat   ( float val )
+#           | ConstInt     ( int val )
+#           | ConstBool    ( bool val )
 #           | Call         ( string id, expr* args )
 #           attributes     ( int? lineno, type? t )
 
-#      arg  = Arg ( string id, type? t)
+#      arg  = Arg ( string id, type t)
 
 #      type = Float  ( )
+#           | Int    ( )
+#           | Bool   ( )
 #     }
 #     """,
 #     header= '',
@@ -47,6 +51,8 @@ def generate_asdl_file():
           expr = Var          ( string id )
                | StructAccess ( expr struct, string member_id )
                | ConstFloat   ( float val )
+               | ConstInt     ( int val )
+               | ConstBool    ( bool val )
                | BinaryOp     ( bin_op op, expr left, expr right )
                | Call         ( string id, expr* args )
                | ContExpr     ( expr argument, string* captures, expr? body )
@@ -55,6 +61,8 @@ def generate_asdl_file():
           arg  = Arg ( string id, type t )
 
           type = Float  ( )
+               | Int    ( )
+               | Bool   ( )
                | Struct ( string id, struct_member* members, int? lineno )
                | Cont   ( type arg_type )
 
