@@ -15,10 +15,12 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
             # if isinstance(node.t, floma_diff_ir.Struct): # dfloat
             #     return type_to_string(node.t) + '*'
             return type_to_string(node.t)
-        # case floma_diff_ir.Int():
-        #     return 'int'
+        case floma_diff_ir.Int():
+            return 'int'
         case floma_diff_ir.Float():
             return 'double'
+        case floma_diff_ir.Bool():
+            return 'bool'
         # case floma_diff_ir.Array():
         #     return type_to_string(node.t) + '*'
         case floma_diff_ir.Struct():
@@ -127,16 +129,18 @@ class CCodegenVisitor(irvisitor.IRVisitor):
     def visit_ifelse(self, node):
         self.emit_tabs()
         self.code += f'if ({self.visit_expr(node.cond)}) {{\n'
+        
         self.tab_count += 1
-        for stmt in node.then_stmts:
-            self.visit_stmt(stmt)
+        self.visit_stmt(node.then_call)
         self.tab_count -= 1
+
         self.emit_tabs()
         self.code += f'}} else {{\n'
+
         self.tab_count += 1
-        for stmt in node.else_stmts:
-            self.visit_stmt(stmt)
+        self.visit_stmt(node.else_call)
         self.tab_count -= 1
+
         self.emit_tabs()
         self.code += '}\n'
 
@@ -168,8 +172,10 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                 return f'({self.visit_expr(node.struct)})->{node.member_id}'
             case floma_diff_ir.ConstFloat():
                 return f'(float)({node.val})'
-            # case floma_diff_ir.ConstInt():
-            #     return f'(int)({node.val})'
+            case floma_diff_ir.ConstInt():
+                return f'(int)({node.val})'
+            case floma_diff_ir.ConstBool():
+                return f'(bool)({node.val})'
             case floma_diff_ir.BinaryOp():
                 match node.op:
                     case floma_diff_ir.Add():
@@ -180,20 +186,20 @@ class CCodegenVisitor(irvisitor.IRVisitor):
                         return f'({self.visit_expr(node.left)}) * ({self.visit_expr(node.right)})'
                     case floma_diff_ir.Div():
                         return f'({self.visit_expr(node.left)}) / ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.Less():
-                    #     return f'({self.visit_expr(node.left)}) < ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.LessEqual():
-                    #     return f'({self.visit_expr(node.left)}) <= ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.Greater():
-                    #     return f'({self.visit_expr(node.left)}) > ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.GreaterEqual():
-                    #     return f'({self.visit_expr(node.left)}) >= ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.Equal():
-                    #     return f'({self.visit_expr(node.left)}) == ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.And():
-                    #     return f'({self.visit_expr(node.left)}) && ({self.visit_expr(node.right)})'
-                    # case floma_diff_ir.Or():
-                    #     return f'({self.visit_expr(node.left)}) || ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.Less():
+                        return f'({self.visit_expr(node.left)}) < ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.LessEqual():
+                        return f'({self.visit_expr(node.left)}) <= ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.Greater():
+                        return f'({self.visit_expr(node.left)}) > ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.GreaterEqual():
+                        return f'({self.visit_expr(node.left)}) >= ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.Equal():
+                        return f'({self.visit_expr(node.left)}) == ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.And():
+                        return f'({self.visit_expr(node.left)}) && ({self.visit_expr(node.right)})'
+                    case floma_diff_ir.Or():
+                        return f'({self.visit_expr(node.left)}) || ({self.visit_expr(node.right)})'
                     case _:
                         assert False
             case floma_diff_ir.Call():

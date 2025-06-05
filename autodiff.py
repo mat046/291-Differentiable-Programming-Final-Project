@@ -982,9 +982,9 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
 
     # AND
 
-    funcs['and'] = floma_diff_ir.FunctionDef(
+    funcs['and_b'] = floma_diff_ir.FunctionDef(
         builtin=True,
-        id='and',
+        id='and_b',
         args=[
             floma_diff_ir.Arg(id='x', t=floma_diff_ir.Bool()),
             floma_diff_ir.Arg(id='y', t=floma_diff_ir.Bool())
@@ -1003,9 +1003,9 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
 
     # OR
 
-    funcs['or'] = floma_diff_ir.FunctionDef(
+    funcs['or_b'] = floma_diff_ir.FunctionDef(
         builtin=True,
-        id='or',
+        id='or_b',
         args=[
             floma_diff_ir.Arg(id='x', t=floma_diff_ir.Bool()),
             floma_diff_ir.Arg(id='y', t=floma_diff_ir.Bool())

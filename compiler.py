@@ -105,6 +105,7 @@ def compile(loma_code : str,
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 #include <memory>
+#include <stdbool.h>
         \n""" + code
 
         # add pybind11 module; used to turn cpp file into an importable python module
@@ -143,6 +144,11 @@ namespace py = pybind11;
         if platform.system() == 'Windows':
             assert False, "Windows is currently not a supported platform"
         else:
+            if output_cpp_filename != None:
+                pathlib.Path(os.path.dirname(output_cpp_filename)).mkdir(parents=True, exist_ok=True)
+                with open(output_cpp_filename, 'w') as f:
+                    f.write(code)
+            
             includes = subprocess.check_output(["python3", "-m", "pybind11", "--includes"], text=True).strip()
             includes_list = includes.split()
 
@@ -156,11 +162,6 @@ namespace py = pybind11;
             log = subprocess.run(cmd, input=code, text=True, check=True)
             if log.returncode != 0:
                 print(log.stderr)
-            
-            if output_cpp_filename != None:
-                pathlib.Path(os.path.dirname(output_cpp_filename)).mkdir(parents=True, exist_ok=True)
-                with open(output_cpp_filename, 'w') as f:
-                    f.write(code)
     else:
         assert False, f'unrecognized compilation target {target}'
 

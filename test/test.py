@@ -163,9 +163,9 @@ class FlomaTest(unittest.TestCase):
         m.d_relu(y, k)
 
         print(f"x:{x.val} ; dx : {x.dval}")
-        print(f"y:{x.val} ; yx : {y.dval}")
+        print(f"y:{y.val} ; yx : {y.dval}")
         assert abs(x.dval - 1.0) < epsilon
-        assert abs(x.dval - 0.0) < epsilon
+        assert abs(y.dval - 0.0) < epsilon
 
         
 if __name__ == '__main__':
