@@ -167,7 +167,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=dfloat
     )
 
-    # --------------------------- built in functions and derivatives ---------------------------------------------
+    # --------------------------- built in float functions and derivatives ---------------------------------------------
 
     def declare_ret(operation : floma_diff_ir.bin_op) -> floma_diff_ir.Declare:
         decl = floma_diff_ir.Declare(
@@ -218,12 +218,12 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
                             )
                         )
     
-    bin_op_args = [
+    bin_op_float_args = [
         floma_diff_ir.Arg('x', floma_diff_ir.Float()),
         floma_diff_ir.Arg('y', floma_diff_ir.Float())
     ]
 
-    diff_bin_op_args = [
+    diff_bin_op_float_args = [
         floma_diff_ir.Arg('x', dfloat),
         floma_diff_ir.Arg('y', dfloat),
         floma_diff_ir.Arg('k', floma_diff_ir.Cont(dfloat))
@@ -232,7 +232,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # ADD FLOATS
     funcs['addf'] = floma_diff_ir.FunctionDef(
         id='addf',
-        args=bin_op_args,
+        args=bin_op_float_args,
         body=[
             floma_diff_ir.Return(
                 val=floma_diff_ir.BinaryOp(
@@ -246,7 +246,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
     funcs['d_addf'] = floma_diff_ir.FunctionDef(
         id='d_addf',
-        args=diff_bin_op_args,
+        args=diff_bin_op_float_args,
         body=[
             # ret = make__dfloat(x.val + y.val, 0)
             declare_ret(floma_diff_ir.Add()),
@@ -280,7 +280,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # SUB FLOATS
     funcs['subf'] = floma_diff_ir.FunctionDef(
         id='subf',
-        args=bin_op_args,
+        args=bin_op_float_args,
         body=[
             floma_diff_ir.Return(
                 floma_diff_ir.BinaryOp(
@@ -294,7 +294,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
     funcs['d_subf'] = floma_diff_ir.FunctionDef(
         id='d_subf',
-        args=diff_bin_op_args,
+        args=diff_bin_op_float_args,
         body=[
             # ret = make__dfloat(x.val - y.val, 0)
             declare_ret(floma_diff_ir.Sub()),
@@ -332,7 +332,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # MUL FLOATS
     funcs['mulf'] = floma_diff_ir.FunctionDef(
         id='mulf',
-        args=bin_op_args,
+        args=bin_op_float_args,
         body=[
             floma_diff_ir.Return(
                 floma_diff_ir.BinaryOp(
@@ -346,7 +346,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
     funcs['d_mulf'] = floma_diff_ir.FunctionDef(
         id='d_mulf',
-        args=diff_bin_op_args,
+        args=diff_bin_op_float_args,
         body=[
             # ret = make__dfloat(x.val * y.val, 0)
             declare_ret(floma_diff_ir.Mul()),
@@ -396,7 +396,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     # DIV FLOATS
     funcs['divf'] = floma_diff_ir.FunctionDef(
         id='divf',
-        args=bin_op_args,
+        args=bin_op_float_args,
         body=[
             floma_diff_ir.Return(
                 floma_diff_ir.BinaryOp(
@@ -410,7 +410,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
     funcs['d_divf'] = floma_diff_ir.FunctionDef(
         id='d_divf',
-        args=diff_bin_op_args,
+        args=diff_bin_op_float_args,
         body=[
             # ret = make__dfloat(x.val / y.val, 0)
             declare_ret(floma_diff_ir.Div()),
@@ -478,6 +478,78 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
             )
         ],
         ret_type=None
+    )
+
+
+    # --------------------------- built in integer functions (which don't have derivatives) ---------------------------------------------
+
+    bin_op_int_args = [
+        floma_diff_ir.Arg('x', floma_diff_ir.Int()),
+        floma_diff_ir.Arg('y', floma_diff_ir.Int())
+    ]
+
+    # ADD INTS
+    funcs['addi'] = floma_diff_ir.FunctionDef(
+        id='addi',
+        args=bin_op_int_args,
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Add(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Int()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Int())
+                ),
+            )
+        ],
+        ret_type=floma_diff_ir.Int()
+    )
+
+    # SUB INTS
+    funcs['subi'] = floma_diff_ir.FunctionDef(
+        id='subi',
+        args=bin_op_int_args,
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Sub(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Int()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Int())
+                ),
+            )
+        ],
+        ret_type=floma_diff_ir.Int()
+    )
+
+    # MUL INTS
+    funcs['muli'] = floma_diff_ir.FunctionDef(
+        id='muli',
+        args=bin_op_int_args,
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Sub(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Int()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Int())
+                ),
+            )
+        ],
+        ret_type=floma_diff_ir.Int()
+    )
+
+    # DIV INTS
+    funcs['divi'] = floma_diff_ir.FunctionDef(
+        id='divi',
+        args=bin_op_int_args,
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    floma_diff_ir.Sub(),
+                    floma_diff_ir.Var('x', t=floma_diff_ir.Int()),
+                    floma_diff_ir.Var('y', t=floma_diff_ir.Int())
+                ),
+            )
+        ],
+        ret_type=floma_diff_ir.Int()
     )
 
     return dfloat, funcs
