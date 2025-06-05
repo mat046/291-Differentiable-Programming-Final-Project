@@ -633,7 +633,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
 
 
 
-    # -------------------------- comparison operators (don't have derivatives because they output booleans) -----------------------------
+    # ---- comparison operators; these don't have derivatives because they output booleans - however we need to define them for dfloats -------
 
     # LESS
     funcs['lessi'] = floma_diff_ir.FunctionDef(
@@ -655,24 +655,50 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=floma_diff_ir.Bool()
     )
 
-    # funcs['lessf'] = floma_diff_ir.FunctionDef(
-    #     builtin=True,
-    #     id='lessf',
-    #     args=[
-    #         floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
-    #         floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
-    #     ],
-    #     body = [
-    #         floma_diff_ir.Return(
-    #             val=floma_diff_ir.BinaryOp(
-    #                 op=floma_diff_ir.Less(),
-    #                 left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
-    #                 right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
-    #             )
-    #         )
-    #     ],
-    #     ret_type=floma_diff_ir.Bool()
-    # )
+    funcs['lessf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='lessf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Less(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+    funcs['d_lessf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='d_lessf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=dfloat),
+            floma_diff_ir.Arg(id='y', t=dfloat)
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Less(),
+                    left=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='x', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    ),
+                    right=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='y', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    )
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
 
 
     # LESS-EQUAL
@@ -696,24 +722,50 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=floma_diff_ir.Bool()
     )
 
-    # funcs['less_equalf'] = floma_diff_ir.FunctionDef(
-    #     builtin=True,
-    #     id='less_equalf',
-    #     args=[
-    #         floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
-    #         floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
-    #     ],
-    #     body = [
-    #         floma_diff_ir.Return(
-    #             val=floma_diff_ir.BinaryOp(
-    #                 op=floma_diff_ir.LessEqual(),
-    #                 left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
-    #                 right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
-    #             )
-    #         )
-    #     ],
-    #     ret_type=floma_diff_ir.Bool()
-    # )
+    funcs['less_equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='less_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.LessEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+    funcs['d_less_equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='d_less_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=dfloat),
+            floma_diff_ir.Arg(id='y', t=dfloat)
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.LessEqual(),
+                    left=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='x', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    ),
+                    right=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='y', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    )
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
 
 
     # GREATER
@@ -737,24 +789,51 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=floma_diff_ir.Bool()
     )
 
-    # funcs['greaterf'] = floma_diff_ir.FunctionDef(
-    #     builtin=True,
-    #     id='greaterf',
-    #     args=[
-    #         floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
-    #         floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
-    #     ],
-    #     body = [
-    #         floma_diff_ir.Return(
-    #             val=floma_diff_ir.BinaryOp(
-    #                 op=floma_diff_ir.Greater(),
-    #                 left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
-    #                 right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
-    #             )
-    #         )
-    #     ],
-    #     ret_type=floma_diff_ir.Bool()
-    # )
+    funcs['greaterf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='greaterf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Greater(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+    funcs['d_greaterf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='d_greaterf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=dfloat),
+            floma_diff_ir.Arg(id='y', t=dfloat)
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Greater(),
+                    left=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='x', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    ),
+                    right=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='y', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    )
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
 
     # GREATER-EQUAL
 
@@ -777,24 +856,51 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=floma_diff_ir.Bool()
     )
 
-    # funcs['greater_equalf'] = floma_diff_ir.FunctionDef(
-    #     builtin=True,
-    #     id='greater_equalf',
-    #     args=[
-    #         floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
-    #         floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
-    #     ],
-    #     body = [
-    #         floma_diff_ir.Return(
-    #             val=floma_diff_ir.BinaryOp(
-    #                 op=floma_diff_ir.GreaterEqual(),
-    #                 left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
-    #                 right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
-    #             )
-    #         )
-    #     ],
-    #     ret_type=floma_diff_ir.Bool()
-    # )
+    funcs['greater_equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='greater_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.GreaterEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+    funcs['d_greater_equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='d_greater_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=dfloat),
+            floma_diff_ir.Arg(id='y', t=dfloat)
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.GreaterEqual(),
+                    left=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='x', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    ),
+                    right=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='y', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    )
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
 
     # EQUAL
 
@@ -817,24 +923,51 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=floma_diff_ir.Bool()
     )
 
-    # funcs['equalf'] = floma_diff_ir.FunctionDef(
-    #     builtin=True,
-    #     id='equalf',
-    #     args=[
-    #         floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
-    #         floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
-    #     ],
-    #     body = [
-    #         floma_diff_ir.Return(
-    #             val=floma_diff_ir.BinaryOp(
-    #                 op=floma_diff_ir.Equal(),
-    #                 left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
-    #                 right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
-    #             )
-    #         )
-    #     ],
-    #     ret_type=floma_diff_ir.Bool()
-    # )
+    funcs['equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Equal(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+    funcs['d_equalf'] = floma_diff_ir.FunctionDef(
+        builtin=True,
+        id='d_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=dfloat),
+            floma_diff_ir.Arg(id='y', t=dfloat)
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Equal(),
+                    left=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='x', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    ),
+                    right=floma_diff_ir.StructAccess(
+                        struct=floma_diff_ir.Var(id='y', t=dfloat),
+                        member_id='val',
+                        t=floma_diff_ir.Float()
+                    )
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
 
 
     # ------------------------------------------ logical operators -----------------------------------------------
@@ -880,7 +1013,6 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ],
         ret_type=floma_diff_ir.Bool()
     )
-
 
 
     return dfloat, funcs
@@ -939,12 +1071,18 @@ def differentiate(dfloat : floma_diff_ir.Struct,
         if isinstance(f, floma_diff_ir.ReverseDiff):
             func_to_rev[f.primal_func] = f.id
     
-    # Define derivatives fo built-in functions as well
+    # Define derivatives for built-in functions as well
     func_to_rev['addf'] = 'd_addf'
     func_to_rev['subf'] = 'd_subf'
     func_to_rev['mulf'] = 'd_mulf'
     func_to_rev['divf'] = 'd_divf'
     func_to_rev['ifelsef'] = 'd_ifelsef'
+    # Aswell as the dfloat counterparts of comparison operators
+    func_to_rev['lessf'] = 'd_lessf'
+    func_to_rev['less_equalf'] = 'd_less_equalf'
+    func_to_rev['greaterf'] = 'd_greaterf'
+    func_to_rev['greater_equalf'] = 'd_greater_equalf'
+    func_to_rev['equalf'] = 'd_equalf'
     # Unless defined in autodiff.make_builtins, the 'derivative' of a builtin is itself
     for f_name in builtins:
         if f_name not in func_to_rev.keys() and f_name not in func_to_rev.values():
