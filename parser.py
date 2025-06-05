@@ -13,11 +13,14 @@ def annotation_to_type(node) -> floma_diff_ir.type:
 
     match node:
         case ast.Name():
-            # if node.id == 'int':
-            #     return floma_diff_ir.Int()
-            # elif node.id == 'float':
-            #     return floma_diff_ir.Float()
-            return floma_diff_ir.Float()
+            if node.id == 'int':
+                return floma_diff_ir.Int()
+            elif node.id == 'float':
+                return floma_diff_ir.Float()
+            elif node.id == 'bool':
+                return floma_diff_ir.Bool()
+            else:
+                assert False, f"Unrecognized type {node.id}"
 
 #             else:
 #                 # Struct members to be filled later
@@ -43,7 +46,7 @@ def annotation_to_type(node) -> floma_diff_ir.type:
 #                 # TODO: error message
 #                 assert False
         case _:
-            assert False, "Function must have a return type"
+            assert False, "Unrecognized type"
 
 # def ast_cmp_op_convert(node) -> floma_diff_ir.bin_op:
 #     """ Given a Python AST node representing
@@ -108,16 +111,9 @@ def visit_FunctionDef(node) -> floma_diff_ir.FunctionDef:
     if node.returns:
         ret_type = annotation_to_type(node.returns)
 
-    # is_simd = False
-    # for decorator in node.decorator_list:
-    #     if isinstance(decorator, ast.Name):
-    #         if decorator.id == 'simd':
-    #             is_simd = True
-
     return floma_diff_ir.FunctionDef(node.name,
                                args,
                                [body],
-                            #    is_simd,
                                ret_type = ret_type,
                                lineno = node.lineno)
 
@@ -232,9 +228,11 @@ def visit_expr(node) -> floma_diff_ir.expr:
             return floma_diff_ir.Var(node.id, lineno = node.lineno)
         case ast.Constant():
             if type(node.value) == int:
-                return floma_diff_ir.ConstInt(node.value, lineno = node.lineno)  
+                return floma_diff_ir.ConstInt(node.value, lineno=node.lineno)  
             elif type(node.value) == float:
-                return floma_diff_ir.ConstFloat(node.value, lineno = node.lineno)
+                return floma_diff_ir.ConstFloat(node.value, lineno=node.lineno)
+            elif type(node.value) == bool:
+                return floma_diff_ir.ConstBool(node.value, lineno=node.lineno)
             else:
                 assert False, f'Unknown constant type'
         # case ast.UnaryOp():
