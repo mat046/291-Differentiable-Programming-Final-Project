@@ -155,17 +155,6 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     funcs['make__const__dfloat'] = floma_diff_ir.FunctionDef(
         id='make__const__dfloat',
         args=[floma_diff_ir.Arg('val', floma_diff_ir.Float())],
-        # body=[
-        #     floma_diff_ir.Declare(target='temp', t=dfloat, dyn_alloc=True),
-        #     floma_diff_ir.Assign(
-        #         target=floma_diff_ir.Var(id='temp',t=dfloat),
-        #         val=floma_diff_ir.Call(
-        #             id='make__dfloat',
-        #             args=[floma_diff_ir.Var(id='val', t=floma_diff_ir.Float()),
-        #                   floma_diff_ir.ConstFloat(val=0.0)],
-        #         )
-        #     ),
-        #     floma_diff_ir.Return(val=floma_diff_ir.Var(id='temp', t=dfloat))],
         body=[
             floma_diff_ir.Return(
                 val=floma_diff_ir.Call(

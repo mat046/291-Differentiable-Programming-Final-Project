@@ -59,7 +59,7 @@ def compile(loma_code : str,
     # first parse the frontend code
     try:
         funcs = parser.parse(loma_code)
-        interfaces = {f.id for f in funcs.values() if isinstance(f, floma_diff_ir.ReverseDiff)}
+        # interfaces = {f.id for f in funcs.values() if isinstance(f, floma_diff_ir.ReverseDiff)}
 
         # next figure out the types related to differentiation
         dfloat, funcs = autodiff.make_builtins(funcs)
@@ -129,7 +129,7 @@ namespace py = pybind11;
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
 """
-        to_be_interfaces = [f for f in funcs.values() if f.id in interfaces]
+        to_be_interfaces = [f for f in funcs.values()]# if f.id in interfaces]
         code += define_interface(to_be_interfaces)
 
         code += """

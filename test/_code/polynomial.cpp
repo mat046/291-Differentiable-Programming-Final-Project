@@ -117,5 +117,18 @@ PYBIND11_MODULE(polynomial, m) {
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
 
+    m.def("plussquare", &plussquare,py::arg("x"),py::arg("y"));
+    m.def("poly", &poly,py::arg("x"),py::arg("y"),py::arg("z"));
     m.def("d_poly", &d_poly,py::arg("x"),py::arg("y"),py::arg("z"),py::arg("k"));
+    m.def("make__dfloat", &make__dfloat,py::arg("val"),py::arg("dval"));
+    m.def("make__const__dfloat", &make__const__dfloat,py::arg("val"));
+    m.def("addf", &addf,py::arg("x"),py::arg("y"));
+    m.def("d_addf", &d_addf,py::arg("x"),py::arg("y"),py::arg("k"));
+    m.def("subf", &subf,py::arg("x"),py::arg("y"));
+    m.def("d_subf", &d_subf,py::arg("x"),py::arg("y"),py::arg("k"));
+    m.def("mulf", &mulf,py::arg("x"),py::arg("y"));
+    m.def("d_mulf", &d_mulf,py::arg("x"),py::arg("y"),py::arg("k"));
+    m.def("divf", &divf,py::arg("x"),py::arg("y"));
+    m.def("d_divf", &d_divf,py::arg("x"),py::arg("y"),py::arg("k"));
+    m.def("d_plussquare", &d_plussquare,py::arg("x"),py::arg("y"),py::arg("k"));
 }

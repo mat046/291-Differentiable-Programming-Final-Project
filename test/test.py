@@ -126,14 +126,18 @@ class FlomaTest(unittest.TestCase):
         zdfloat = m.make__dfloat(z, 0.0)
 
         m.d_poly(xdfloat, ydfloat, zdfloat, k)
+        actual_result = m.poly(x, y, z)
 
+        expected_result = x**2 + 2*x*y + 2*y**2 + 2*y*z + z**2
         dx = 2.0*x + 2.0*y
         dy = 2.0*x + 4.0*y + 2.0*z
         dz = 2.0*y + 2.0*z
 
+        print(f"expected result {expected_result} ; actual result {actual_result}")
         print(f"expected dx: {dx} ; actual dx: {xdfloat.dval}")
         print(f"expected dx: {dy} ; actual dx: {ydfloat.dval}")
         print(f"expected dx: {dz} ; actual dx: {zdfloat.dval}")
+        assert abs(expected_result - actual_result) < epsilon
         assert abs(dx - xdfloat.dval) < epsilon
         assert abs(dy - ydfloat.dval) < epsilon
         assert abs(dz - zdfloat.dval) < epsilon
