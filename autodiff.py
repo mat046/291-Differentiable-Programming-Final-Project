@@ -167,7 +167,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=dfloat
     )
 
-    # --------------------------- built in float functions and derivatives ---------------------------------------------
+    # --------------------------- built in float binary operations and derivatives ---------------------------------------------
 
     def declare_ret(operation : floma_diff_ir.bin_op) -> floma_diff_ir.Declare:
         decl = floma_diff_ir.Declare(
@@ -481,7 +481,8 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     )
 
 
-    # --------------------------- built in integer functions (which don't have derivatives) ---------------------------------------------
+
+    # --------------------------- built in integer binary operations (which don't have derivatives) ---------------------------------------------
 
     bin_op_int_args = [
         floma_diff_ir.Arg('x', floma_diff_ir.Int()),
@@ -551,6 +552,303 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ],
         ret_type=floma_diff_ir.Int()
     )
+
+ 
+
+    #-------------------------------------- control flow -----------------------------------------------
+
+    # FLOAT IFELSE
+    funcs['ifelsef'] = floma_diff_ir.FunctionDef(
+        id='ifelsef',
+        args=[
+            floma_diff_ir.Arg(id='cond', t=floma_diff_ir.Bool()),
+            floma_diff_ir.Arg(id='_then', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='_else', t=floma_diff_ir.Float())
+        ],
+        body=[
+            floma_diff_ir.IfElse(
+                cond=floma_diff_ir.Var(id='cond', t=floma_diff_ir.Bool()),
+                then_call=floma_diff_ir.Return(val=floma_diff_ir.Var(id='_then', t=floma_diff_ir.Float())),
+                else_call=floma_diff_ir.Return(val=floma_diff_ir.Var(id='_else', t=floma_diff_ir.Float()))
+            )
+        ],
+        ret_type=floma_diff_ir.Float()
+    )
+    funcs['d_ifelsef'] = floma_diff_ir.FunctionDef(
+        id='d_ifelsef',
+        args=[
+            floma_diff_ir.Arg(id='cond', t=floma_diff_ir.Bool()),
+            floma_diff_ir.Arg(id='_then', t=dfloat),
+            floma_diff_ir.Arg(id='_else', t=dfloat),
+            floma_diff_ir.Arg(id='k', t=floma_diff_ir.Cont(t=dfloat))
+        ],
+        body=[
+            floma_diff_ir.IfElse(
+                cond=floma_diff_ir.Var(id='cond', t=floma_diff_ir.Bool()),
+                then_call=floma_diff_ir.CallStmt(
+                    call=floma_diff_ir.Call(id='k', args=[floma_diff_ir.Var(id='_then', t=dfloat)], t=None)
+                ),
+                else_call=floma_diff_ir.CallStmt(
+                    call=floma_diff_ir.Call(id='k', args=[floma_diff_ir.Var(id='_else', t=dfloat)], t=None)
+                )
+            )
+        ],
+        ret_type=None
+    )
+
+    # INTEGER IFELSE
+    funcs['ifelsei'] = floma_diff_ir.FunctionDef(
+        id='ifelsei',
+        args=[
+            floma_diff_ir.Arg(id='cond', t=floma_diff_ir.Bool()),
+            floma_diff_ir.Arg(id='_then', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='_else', t=floma_diff_ir.Int())
+        ],
+        body=[
+            floma_diff_ir.IfElse(
+                cond=floma_diff_ir.Var(id='cond', t=floma_diff_ir.Bool()),
+                then_call=floma_diff_ir.Return(val=floma_diff_ir.Var(id='_then', t=floma_diff_ir.Int())),
+                else_call=floma_diff_ir.Return(val=floma_diff_ir.Var(id='_else', t=floma_diff_ir.Int()))
+            )
+        ],
+        ret_type=floma_diff_ir.Int()
+    )
+
+
+
+    # -------------------------- logical operators (don't have derivatives because they output booleans) -----------------------------
+
+    # LESS
+    funcs['lessi'] = floma_diff_ir.FunctionDef(
+        id='lessi',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Less(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Int()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Int())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    funcs['lessf'] = floma_diff_ir.FunctionDef(
+        id='lessf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Less(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+
+    # LESS-EQUAL
+
+    funcs['less_equali'] = floma_diff_ir.FunctionDef(
+        id='less_equali',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.LessEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Int()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Int())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    funcs['less_equalf'] = floma_diff_ir.FunctionDef(
+        id='less_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.LessEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+
+    # GREATER
+
+    funcs['greater'] = floma_diff_ir.FunctionDef(
+        id='greater',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Greater(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Int()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Int())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    funcs['greaterf'] = floma_diff_ir.FunctionDef(
+        id='greaterf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Greater(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    # GREATER-EQUAL
+
+    funcs['greater_equali'] = floma_diff_ir.FunctionDef(
+        id='greater_equali',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.GreaterEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Int()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Int())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    funcs['greater_equalf'] = floma_diff_ir.FunctionDef(
+        id='greater_equalf',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.GreaterEqual(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    # EQUAL
+
+    funcs['equali'] = floma_diff_ir.FunctionDef(
+        id='equali',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Equal(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Int()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Int())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    funcs['equalf'] = floma_diff_ir.FunctionDef(
+        id='equalef',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Float()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Float())
+        ],
+        body = [
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Equal(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Float()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Float())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    # AND
+
+    funcs['and'] = floma_diff_ir.FunctionDef(
+        id='and',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Bool()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Bool())
+        ],
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.And(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Bool()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Bool())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
+    # OR
+
+    funcs['or'] = floma_diff_ir.FunctionDef(
+        id='or',
+        args=[
+            floma_diff_ir.Arg(id='x', t=floma_diff_ir.Bool()),
+            floma_diff_ir.Arg(id='y', t=floma_diff_ir.Bool())
+        ],
+        body=[
+            floma_diff_ir.Return(
+                val=floma_diff_ir.BinaryOp(
+                    op=floma_diff_ir.Or(),
+                    left=floma_diff_ir.Var(id='x', t=floma_diff_ir.Bool()),
+                    right=floma_diff_ir.Var(id='y', t=floma_diff_ir.Bool())
+                )
+            )
+        ],
+        ret_type=floma_diff_ir.Bool()
+    )
+
 
     return dfloat, funcs
 
