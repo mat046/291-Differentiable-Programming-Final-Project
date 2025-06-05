@@ -372,7 +372,7 @@ def reverse_diff(#diff_func_id : str,
 
         def mutate_function_def(self, node):
             # If return type isn't a float, it is not differentiable
-            assert isinstance(node.ret_type, floma_diff_ir.Float()), f"Function {node.id} is not differentiable: it returns a non-float"
+            assert isinstance(node.ret_type, floma_diff_ir.Float), f"Function {node.id} is not differentiable: it returns a non-float"
 
             # Mutate arguments
             new_args = self.mutate_args(node)

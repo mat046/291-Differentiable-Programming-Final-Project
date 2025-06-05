@@ -169,6 +169,14 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
         ret_type=dfloat
     )
 
+    # #--------------- identity functions; necessary because every expression in floma is a function call--------------------
+    # funcs['identityi'] = floma_diff_ir.FunctionDef(
+    #     builtin=True,
+    #     id='identityi',
+    #     args=[floma_diff_ir.Arg('x', floma_diff_ir.Int())]
+    # )
+
+
     # --------------------------- built in float binary operations and derivatives ---------------------------------------------
 
     def declare_ret(operation : floma_diff_ir.bin_op) -> floma_diff_ir.Declare:

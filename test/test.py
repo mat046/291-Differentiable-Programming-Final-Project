@@ -101,46 +101,71 @@ class FlomaTest(unittest.TestCase):
     #     print(f"dx : {xdfloat.dval} ; expected dx : {dx}")
     #     assert abs(xdfloat.dval - dx) < epsilon
     
+    # def test_nested_funcs(self):
+    #     with open('floma_code/polynomial.py') as f:
+    #        compiler.compile(f.read(),
+    #             target = 'c++',
+    #             output_filename = '_code/polynomial',
+    #             output_cpp_filename='_code/polynomial.cpp')
+        
+    #     module_path = "_code/polynomial.so"
+    #     module_name = "polynomial"
+
+    #     spec = importlib.util.spec_from_file_location(module_name, module_path)
+    #     m = importlib.util.module_from_spec(spec)
+    #     sys.modules[module_name] = m
+    #     spec.loader.exec_module(m)
+
+    #     x = 22.7
+    #     xdfloat = m.make__dfloat(x, 0.0)
+
+    #     y = 2.718
+    #     ydfloat = m.make__dfloat(y, 0.0)
+
+    #     z = -41.67
+    #     zdfloat = m.make__dfloat(z, 0.0)
+
+    #     m.d_poly(xdfloat, ydfloat, zdfloat, k)
+    #     actual_result = m.poly(x, y, z)
+
+    #     expected_result = x**2 + 2*x*y + 2*y**2 + 2*y*z + z**2
+    #     dx = 2.0*x + 2.0*y
+    #     dy = 2.0*x + 4.0*y + 2.0*z
+    #     dz = 2.0*y + 2.0*z
+
+    #     print(f"expected result {expected_result} ; actual result {actual_result}")
+    #     print(f"expected dx: {dx} ; actual dx: {xdfloat.dval}")
+    #     print(f"expected dx: {dy} ; actual dx: {ydfloat.dval}")
+    #     print(f"expected dx: {dz} ; actual dx: {zdfloat.dval}")
+    #     assert abs(expected_result - actual_result) < epsilon
+    #     assert abs(dx - xdfloat.dval) < epsilon
+    #     assert abs(dy - ydfloat.dval) < epsilon
+    #     assert abs(dz - zdfloat.dval) < epsilon
+
     def test_nested_funcs(self):
-        with open('floma_code/polynomial.py') as f:
+        with open('floma_code/relu.py') as f:
            compiler.compile(f.read(),
                 target = 'c++',
-                output_filename = '_code/polynomial',
-                output_cpp_filename='_code/polynomial.cpp')
+                output_filename = '_code/relu',
+                output_cpp_filename='_code/relu.cpp')
         
-        module_path = "_code/polynomial.so"
-        module_name = "polynomial"
+        module_path = "_code/relu.so"
+        module_name = "relu"
 
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         m = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = m
         spec.loader.exec_module(m)
 
-        x = 22.7
-        xdfloat = m.make__dfloat(x, 0.0)
+        x = m.make__dfloat(1.2345, 0.0)
+        y = m.make__dfloat(-5.4321, 0.0)
+        m.d_relu(x, k)
+        m.d_relu(y, k)
 
-        y = 2.718
-        ydfloat = m.make__dfloat(y, 0.0)
-
-        z = -41.67
-        zdfloat = m.make__dfloat(z, 0.0)
-
-        m.d_poly(xdfloat, ydfloat, zdfloat, k)
-        actual_result = m.poly(x, y, z)
-
-        expected_result = x**2 + 2*x*y + 2*y**2 + 2*y*z + z**2
-        dx = 2.0*x + 2.0*y
-        dy = 2.0*x + 4.0*y + 2.0*z
-        dz = 2.0*y + 2.0*z
-
-        print(f"expected result {expected_result} ; actual result {actual_result}")
-        print(f"expected dx: {dx} ; actual dx: {xdfloat.dval}")
-        print(f"expected dx: {dy} ; actual dx: {ydfloat.dval}")
-        print(f"expected dx: {dz} ; actual dx: {zdfloat.dval}")
-        assert abs(expected_result - actual_result) < epsilon
-        assert abs(dx - xdfloat.dval) < epsilon
-        assert abs(dy - ydfloat.dval) < epsilon
-        assert abs(dz - zdfloat.dval) < epsilon
+        print(f"x:{x.val} ; dx : {x.dval}")
+        print(f"y:{x.val} ; yx : {y.dval}")
+        assert abs(x.dval - 1.0) < epsilon
+        assert abs(x.dval - 0.0) < epsilon
 
         
 if __name__ == '__main__':
