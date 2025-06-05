@@ -633,7 +633,7 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
 
 
 
-    # -------------------------- logical operators (don't have derivatives because they output booleans) -----------------------------
+    # -------------------------- comparison operators (don't have derivatives because they output booleans) -----------------------------
 
     # LESS
     funcs['lessi'] = floma_diff_ir.FunctionDef(
@@ -836,6 +836,9 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
     #     ret_type=floma_diff_ir.Bool()
     # )
 
+
+    # ------------------------------------------ logical operators -----------------------------------------------
+
     # AND
 
     funcs['and'] = floma_diff_ir.FunctionDef(
@@ -927,25 +930,31 @@ def differentiate(dfloat : floma_diff_ir.Struct,
         funcs - now all functions that are ForwardDiff and ReverseDiff
                 are replaced by the actual FunctionDef
     """
+    # set of builtin functions
+    builtins : set[str] = {f.id for f in funcs.values() if isinstance(f, floma_diff_ir.FunctionDef) and f.builtin}
 
     # Map functions to their differentiated versions
     func_to_rev = dict()
     for f in funcs.values():
         if isinstance(f, floma_diff_ir.ReverseDiff):
             func_to_rev[f.primal_func] = f.id
-    # do for built in functions as well
+    
+    # Define derivatives fo built-in functions as well
     func_to_rev['addf'] = 'd_addf'
     func_to_rev['subf'] = 'd_subf'
     func_to_rev['mulf'] = 'd_mulf'
     func_to_rev['divf'] = 'd_divf'
     func_to_rev['ifelsef'] = 'd_ifelsef'
+    # Unless defined in autodiff.make_builtins, the 'derivative' of a builtin is itself
+    for f_name in builtins:
+        if f_name not in func_to_rev.keys() and f_name not in func_to_rev.values():
+            func_to_rev[f_name] = f_name
 
     # Traverse: for each function that requires reverse diff
     # recursively having all called functions to require reverse diff
     # as well
     visited_func = set(func_to_rev.keys())
     func_stack = list(func_to_rev.keys())
-    builtins : set[str] = {f.id for f in funcs.values() if isinstance(f, floma_diff_ir.FunctionDef) and f.builtin}
     while len(func_stack) > 0:
         primal_func_id = func_stack.pop()
         primal_func = funcs[primal_func_id]

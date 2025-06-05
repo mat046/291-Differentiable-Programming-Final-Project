@@ -272,11 +272,6 @@ def reverse_diff(#diff_func_id : str,
                 case floma_diff_ir.Call():
                     func_def = funcs_dict[parent.id]
                     assert isinstance(func_def, floma_diff_ir.FunctionDef), f"{parent.id} has not been declared"
-                    ret_type = func_def.ret_type
-                    
-                    if not isinstance(ret_type, floma_diff_ir.Float):
-                        new_node = copy.deepcopy(parent)
-                        return [], new_node
                     
                     pass
                 case _:
@@ -315,6 +310,12 @@ def reverse_diff(#diff_func_id : str,
                 
                 # if the argument is a float constant, ignore it
                 if arg.id == "make__const__dfloat":
+                    continue
+
+                # if the argument is not differentiable, ignore it
+                func_def = funcs_dict[arg.id]
+                ret_type = func_def.ret_type
+                if not isinstance(ret_type, floma_diff_ir.Float):
                     continue
 
                 pccp = ParentChildCallPair(child=arg, parent=new_parent, arg_idx=idx)
