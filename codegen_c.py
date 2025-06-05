@@ -18,7 +18,7 @@ def type_to_string(node : floma_diff_ir.type | floma_diff_ir.arg) -> str:
         # case floma_diff_ir.Int():
         #     return 'int'
         case floma_diff_ir.Float():
-            return 'float'
+            return 'double'
         # case floma_diff_ir.Array():
         #     return type_to_string(node.t) + '*'
         case floma_diff_ir.Struct():

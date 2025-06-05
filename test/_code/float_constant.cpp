@@ -5,24 +5,24 @@
 #include <memory>
         
 typedef struct {
-	float val;
-	float dval;
+	double val;
+	double dval;
 } _dfloat;
 
-float func(float x);
+double func(double x);
 void d_func(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr<_dfloat>)>& k);
-std::shared_ptr<_dfloat> make__dfloat(float val, float dval);
-std::shared_ptr<_dfloat> make__const__dfloat(float val);
-float addf(float x, float y);
+std::shared_ptr<_dfloat> make__dfloat(double val, double dval);
+std::shared_ptr<_dfloat> make__const__dfloat(double val);
+double addf(double x, double y);
 void d_addf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
-float subf(float x, float y);
+double subf(double x, double y);
 void d_subf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
-float mulf(float x, float y);
+double mulf(double x, double y);
 void d_mulf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
-float divf(float x, float y);
+double divf(double x, double y);
 void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 
-float func(float x) {
+double func(double x) {
 	return addf(mulf(x,(float)(2.0)),divf(x,(float)(2.0)));
 }
 
@@ -32,18 +32,18 @@ void d_func(std::shared_ptr<_dfloat> x, const std::function<void(std::shared_ptr
 			-> void{d_addf(t1,t0,k);});});
 }
 
-std::shared_ptr<_dfloat> make__dfloat(float val, float dval) {
+std::shared_ptr<_dfloat> make__dfloat(double val, double dval) {
 	std::shared_ptr<_dfloat> ret = std::make_shared<_dfloat>();
 	(ret)->val = val;
 	(ret)->dval = dval;
 	return ret;
 }
 
-std::shared_ptr<_dfloat> make__const__dfloat(float val) {
+std::shared_ptr<_dfloat> make__const__dfloat(double val) {
 	return make__dfloat(val,(float)(0.0));
 }
 
-float addf(float x, float y) {
+double addf(double x, double y) {
 	return (x) + (y);
 }
 
@@ -54,7 +54,7 @@ void d_addf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 	(y)->dval = ((y)->dval) + ((ret)->dval);
 }
 
-float subf(float x, float y) {
+double subf(double x, double y) {
 	return (x) - (y);
 }
 
@@ -65,7 +65,7 @@ void d_subf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 	(y)->dval = ((y)->dval) + (((float)(-1.0)) * ((ret)->dval));
 }
 
-float mulf(float x, float y) {
+double mulf(double x, double y) {
 	return (x) * (y);
 }
 
@@ -76,7 +76,7 @@ void d_mulf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 	(y)->dval = ((y)->dval) + (((x)->val) * ((ret)->dval));
 }
 
-float divf(float x, float y) {
+double divf(double x, double y) {
 	return (x) / (y);
 }
 
@@ -91,9 +91,8 @@ void d_divf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::f
 namespace py = pybind11;
 
 
-
 PYBIND11_MODULE(float_constant, m) {
-    py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
+    py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat", py::module_local())
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
         .def_readwrite("dval", &_dfloat::dval);

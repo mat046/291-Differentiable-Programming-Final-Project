@@ -116,7 +116,7 @@ namespace py = pybind11;
         code += f"PYBIND11_MODULE({module_name}, m) " + "{"
 
         code += """
-    py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat")
+    py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat", py::module_local())
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
         .def_readwrite("dval", &_dfloat::dval);
