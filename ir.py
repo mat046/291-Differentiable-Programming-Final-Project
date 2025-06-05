@@ -38,7 +38,7 @@ def generate_asdl_file():
  
     ADT("""
      module floma_diff {
-          func = FunctionDef ( string id, arg* args, stmt* body, type? ret_type )
+          func = FunctionDef ( string id, arg* args, stmt* body, type? ret_type, bool? builtin )
                | ReverseDiff ( string id, string primal_func )
                attributes  ( int? lineno )
 

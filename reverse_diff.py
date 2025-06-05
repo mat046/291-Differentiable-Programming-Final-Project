@@ -266,10 +266,18 @@ def reverse_diff(#diff_func_id : str,
                         t=dfloat
                     )
                     return [], new_node
-                case floma_diff_ir.Var():
+                case floma_diff_ir.ConstInt() | floma_diff_ir.ConstBool() | floma_diff_ir.Var():
                     new_node = copy.deepcopy(parent)
                     return [], new_node
                 case floma_diff_ir.Call():
+                    func_def = funcs_dict[parent.id]
+                    assert isinstance(func_def, floma_diff_ir.FunctionDef), f"{parent.id} has not been declared"
+                    ret_type = func_def.ret_type
+                    
+                    if not isinstance(ret_type, floma_diff_ir.Float):
+                        new_node = copy.deepcopy(parent)
+                        return [], new_node
+                    
                     pass
                 case _:
                     assert False, f"argument {parent} in {func.id} is not a supported type"
@@ -362,6 +370,9 @@ def reverse_diff(#diff_func_id : str,
             return new_args
 
         def mutate_function_def(self, node):
+            # If return type isn't a float, it is not differentiable
+            assert isinstance(node.ret_type, floma_diff_ir.Float()), f"Function {node.id} is not differentiable: it returns a non-float"
+
             # Mutate arguments
             new_args = self.mutate_args(node)
             

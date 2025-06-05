@@ -80,10 +80,8 @@ def check_undeclared_vars(node : floma_diff_ir.func):
             ret = self.visit_expr(node.cond)
             if ret != None:
                 raise error.UndeclaredVariable(ret, node.cond)
-            for stmt in node.then_stmts:
-                self.visit_stmt(stmt)
-            for stmt in node.else_stmts:
-                self.visit_stmt(stmt)
+            self.visit_stmt(node.then_call)
+            self.visit_stmt(node.else_call)
 
         def visit_expr(self, node):
             match node:
@@ -229,10 +227,8 @@ def check_declares_are_outmost(node : floma_diff_ir.func):
 
         def visit_ifelse(self, node):
             self.in_outmost_level = False
-            for stmt in node.then_stmts:
-                self.visit_stmt(stmt)
-            for stmt in node.else_stmts:
-                self.visit_stmt(stmt)
+            self.visit_stmt(node.then_call)
+            self.visit_stmt(node.else_call)
             self.in_outmost_level = True
 
         def visit_while(self, node):

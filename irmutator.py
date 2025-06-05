@@ -86,8 +86,8 @@ class IRMutator:
 
     def mutate_ifelse(self, node):
         new_cond = self.mutate_expr(node.cond)
-        new_then_stmts = [self.mutate_stmt(stmt) for stmt in node.then_stmts]
-        new_else_stmts = [self.mutate_stmt(stmt) for stmt in node.else_stmts]
+        new_then_stmts = self.mutate_stmt(node.then_call)
+        new_else_stmts = self.mutate_stmt(node.else_call)
         # Important: mutate_stmt can return a list of statements. We need to flatten the lists.
         new_then_stmts = flatten(new_then_stmts)
         new_else_stmts = flatten(new_else_stmts)
