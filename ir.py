@@ -46,6 +46,7 @@ def generate_asdl_file():
                | Declare    ( string target, type t, expr? val, bool? dyn_alloc )
                | CallStmt   ( expr call )
                | Return     ( expr val )
+               | IfElse     ( expr cond, stmt then_call, stmt else_call )
                attributes   ( int? lineno )
 
           expr = Var          ( string id )
@@ -72,6 +73,13 @@ def generate_asdl_file():
                | Sub()
                | Mul()
                | Div()
+               | Less()
+               | LessEqual()
+               | Greater()
+               | GreaterEqual()
+               | Equal()
+               | And()
+               | Or()
      }
      """,
      header= '',

@@ -11,6 +11,7 @@ module floma_diff {
           | Declare    ( string target, type t, expr? val, bool? dyn_alloc )
           | CallStmt   ( expr call )
           | Return     ( expr val )
+          | IfElse     ( expr cond, stmt then_call, stmt else_call )
           attributes   ( int? lineno )
 
      expr = Var          ( string id )
@@ -37,6 +38,13 @@ module floma_diff {
           | Sub()
           | Mul()
           | Div()
+          | Less()
+          | LessEqual()
+          | Greater()
+          | GreaterEqual()
+          | Equal()
+          | And()
+          | Or()
 }
 
 """
@@ -177,6 +185,28 @@ class Return(stmt):
                             "invalid instance of 'expr val'")
         if not (self.lineno is None or isinstance(self.lineno, int)):
             raise TypeError("Return(...) argument 2: " +
+                            "invalid instance of 'int? lineno'")
+
+
+@_attrs.define
+class IfElse(stmt):
+    cond: expr
+    then_call: stmt
+    else_call: stmt
+    lineno: _Optional[int] = None
+
+    def __attrs_post_init__(self):
+        if not isinstance(self.cond, expr):
+            raise TypeError("IfElse(...) argument 1: " +
+                            "invalid instance of 'expr cond'")
+        if not isinstance(self.then_call, stmt):
+            raise TypeError("IfElse(...) argument 2: " +
+                            "invalid instance of 'stmt then_call'")
+        if not isinstance(self.else_call, stmt):
+            raise TypeError("IfElse(...) argument 3: " +
+                            "invalid instance of 'stmt else_call'")
+        if not (self.lineno is None or isinstance(self.lineno, int)):
+            raise TypeError("IfElse(...) argument 4: " +
                             "invalid instance of 'int? lineno'")
 
 
@@ -481,6 +511,55 @@ class Mul(bin_op):
 
 @_attrs.define
 class Div(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Less(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class LessEqual(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Greater(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class GreaterEqual(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Equal(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class And(bin_op):
+
+    def __attrs_post_init__(self):
+        pass
+
+
+@_attrs.define
+class Or(bin_op):
 
     def __attrs_post_init__(self):
         pass
