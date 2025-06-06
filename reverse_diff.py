@@ -8,6 +8,7 @@ import autodiff
 import string
 import random
 import copy
+import hashlib
 
 # From https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
 def random_id_generator(size=6, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
@@ -341,6 +342,8 @@ def reverse_diff(dfloat : floma_diff_ir.Struct,
 
             self.params_ : list[str] = []
 
+            self.lambda_arg_prefix : str
+
         def mutate_args(self, node):
             new_args = []
             for arg in node.args:
@@ -373,6 +376,9 @@ def reverse_diff(dfloat : floma_diff_ir.Struct,
         def mutate_function_def(self, node):
             # If return type isn't a float, it is not differentiable
             assert isinstance(node.ret_type, floma_diff_ir.Float), f"Function {node.id} is not differentiable: it returns a non-float"
+
+            # needed so that the lambdas in this function definition have unique paramters
+            self.lambda_arg_prefix = node.id  # may decide on something more elegant in the future
 
             # Mutate arguments
             new_args = self.mutate_args(node)
@@ -424,7 +430,7 @@ def reverse_diff(dfloat : floma_diff_ir.Struct,
                 old_parent = pccp.parent_
                 arg_idx = pccp.arg_idx_
 
-                lambda_param_name = f"t{self.lambda_count_}"
+                lambda_param_name = f"t{self.lambda_arg_prefix}{self.lambda_count_}"
                 self.lambda_count_ += 1
                 lambda_param = floma_diff_ir.Var(
                     id=lambda_param_name,
