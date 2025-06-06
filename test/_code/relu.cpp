@@ -35,7 +35,7 @@ bool d_lessf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y);
 bool less_equali(int x, int y);
 bool less_equalf(double x, double y);
 bool d_less_equalf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y);
-bool greater(int x, int y);
+bool greateri(int x, int y);
 bool greaterf(double x, double y);
 bool d_greaterf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y);
 bool greater_equali(int x, int y);
@@ -174,7 +174,7 @@ bool d_less_equalf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y) {
 	return ((x)->val) <= ((y)->val);
 }
 
-bool greater(int x, int y) {
+bool greateri(int x, int y) {
 	return (x) > (y);
 }
 
@@ -261,7 +261,7 @@ PYBIND11_MODULE(relu, m) {
     m.def("less_equali", &less_equali,py::arg("x"),py::arg("y"));
     m.def("less_equalf", &less_equalf,py::arg("x"),py::arg("y"));
     m.def("d_less_equalf", &d_less_equalf,py::arg("x"),py::arg("y"));
-    m.def("greater", &greater,py::arg("x"),py::arg("y"));
+    m.def("greateri", &greateri,py::arg("x"),py::arg("y"));
     m.def("greaterf", &greaterf,py::arg("x"),py::arg("y"));
     m.def("d_greaterf", &d_greaterf,py::arg("x"),py::arg("y"));
     m.def("greater_equali", &greater_equali,py::arg("x"),py::arg("y"));

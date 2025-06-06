@@ -13,14 +13,11 @@ import copy
 def random_id_generator(size=6, chars=string.ascii_lowercase + string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
-def reverse_diff(#diff_func_id : str,
-                #  structs : dict[str, floma_diff_ir.Struct],
-                #  funcs : dict[str, floma_diff_ir.func],
-                #  diff_structs : dict[str, floma_diff_ir.Struct],
-                 dfloat : floma_diff_ir.Struct,
+def reverse_diff(dfloat : floma_diff_ir.Struct,
                  func : floma_diff_ir.FunctionDef,
                  funcs_dict : dict[str, floma_diff_ir.func],
-                 func_to_rev : dict[str, str]) -> floma_diff_ir.FunctionDef:
+                 func_to_rev : dict[str, str],
+                 rev_to_func : dict[str, str]) -> floma_diff_ir.FunctionDef:
     """ Given a primal loma function func, apply reverse differentiation
         and return a function that computes the total derivative of func.
 
@@ -313,7 +310,8 @@ def reverse_diff(#diff_func_id : str,
                     continue
 
                 # if the argument is not differentiable, ignore it
-                func_def = funcs_dict[arg.id]
+                primal_arg_id = rev_to_func[arg.id]  # we will have already mutated arg, but we need the original FunctionDef
+                func_def = funcs_dict[primal_arg_id]
                 ret_type = func_def.ret_type
                 if not isinstance(ret_type, floma_diff_ir.Float):
                     continue
@@ -350,6 +348,8 @@ def reverse_diff(#diff_func_id : str,
                 match arg.t:
                     case floma_diff_ir.Float():
                         new_arg = floma_diff_ir.Arg(id=arg.id, t=dfloat)
+                    case floma_diff_ir.Int() | floma_diff_ir.Bool():
+                        new_arg = copy.deepcopy(arg)
                     case _:
                         assert False, f"Unrecognized type for arg {arg}"
                 new_args.append(new_arg)

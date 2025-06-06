@@ -11,10 +11,12 @@ def type_to_string(node : floma_diff_ir.type) -> str:
     """
 
     match node:
-        # case floma_diff_ir.Int():
-        #     return 'int'
+        case floma_diff_ir.Int():
+            return 'int'
         case floma_diff_ir.Float():
             return 'float'
+        case floma_diff_ir.Bool():
+            return 'bool'
         # case floma_diff_ir.Array():
         #     if node.static_size != None:
         #         return f'Array[{type_to_string(node.t)}, {node.static_size}]'
@@ -125,8 +127,10 @@ class PrettyPrintVisitor(irvisitor.IRVisitor):
                 return f'({self.visit_expr(node.struct)}).{node.member_id}'
             case floma_diff_ir.ConstFloat():
                 return f'(float)({node.val})'
-            # case floma_diff_ir.ConstInt():
-            #     return f'(int)({node.val})'
+            case floma_diff_ir.ConstInt():
+                return f'(int)({node.val})'
+            case floma_diff_ir.ConstBool():
+                return f'(bool)({node.val})'
             # case floma_diff_ir.BinaryOp():
             #     match node.op:
             #         case floma_diff_ir.Add():

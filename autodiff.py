@@ -778,9 +778,9 @@ def make_builtins(funcs : dict[str, floma_diff_ir.func]) -> \
 
     # GREATER
 
-    funcs['greater'] = floma_diff_ir.FunctionDef(
+    funcs['greateri'] = floma_diff_ir.FunctionDef(
         builtin=True,
-        id='greater',
+        id='greateri',
         args=[
             floma_diff_ir.Arg(id='x', t=floma_diff_ir.Int()),
             floma_diff_ir.Arg(id='y', t=floma_diff_ir.Int())
@@ -1115,9 +1115,12 @@ def differentiate(dfloat : floma_diff_ir.Struct,
                 visited_func.add(f)
                 func_stack.append(f)
 
+    # Create rev_to_func dictionary
+    rev_to_func = {v : k for k , v in func_to_rev.items()}
+
     for f in funcs.values():
         if isinstance(f, floma_diff_ir.ReverseDiff):
-            rev_diff_func = reverse_diff.reverse_diff(dfloat, funcs[f.primal_func], funcs, func_to_rev)
+            rev_diff_func = reverse_diff.reverse_diff(dfloat, funcs[f.primal_func], funcs, func_to_rev, rev_to_func)
             funcs[f.id] = rev_diff_func
             import pretty_print
             print(f'\nReverse differentiation of function {f.id}:')

@@ -93,8 +93,8 @@ def check_undeclared_vars(node : floma_diff_ir.func):
                     return self.visit_struct_access(node)
                 case floma_diff_ir.ConstFloat():
                     return self.visit_const_float(node)
-                # case floma_diff_ir.ConstInt():
-                #     return self.visit_const_int(node)
+                case floma_diff_ir.ConstInt():
+                    return self.visit_const_int(node)
                 case floma_diff_ir.BinaryOp():
                     return self.visit_binary_op(node)
                 case floma_diff_ir.Call():

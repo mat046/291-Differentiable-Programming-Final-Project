@@ -10,9 +10,8 @@ typedef struct {
 	double dval;
 } _dfloat;
 
-double plussquare(double x, double y);
-double poly(double x, double y, double z);
-void d_poly(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, std::shared_ptr<_dfloat> z, const std::function<void(std::shared_ptr<_dfloat>)>& k);
+double mypow(double x, int n);
+void d_mypow(std::shared_ptr<_dfloat> x, int n, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 std::shared_ptr<_dfloat> make__dfloat(double val, double dval);
 std::shared_ptr<_dfloat> make__const__dfloat(double val);
 double addf(double x, double y);
@@ -47,20 +46,15 @@ bool equalf(double x, double y);
 bool d_equalf(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y);
 bool and_b(bool x, bool y);
 bool or_b(bool x, bool y);
-void d_plussquare(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k);
 
-double plussquare(double x, double y) {
-	return mulf(addf(x,y),addf(x,y));
+double mypow(double x, int n) {
+	return ifelsef(greateri(n,(int)(1)),mulf(x,mypow(x,subi(n,(int)(1)))),x);
 }
 
-double poly(double x, double y, double z) {
-	return addf(plussquare(x,y),plussquare(y,z));
-}
-
-void d_poly(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, std::shared_ptr<_dfloat> z, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
-	d_plussquare(x,y,[x,y,z,k](std::shared_ptr<_dfloat>t1)
-		-> void{d_plussquare(y,z,[x,y,z,k,t1](std::shared_ptr<_dfloat>t0)
-			-> void{d_addf(t1,t0,k);});});
+void d_mypow(std::shared_ptr<_dfloat> x, int n, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
+	d_mypow(x,subi(n,(int)(1)),[x,n,k](std::shared_ptr<_dfloat>t1)
+		-> void{d_mulf(x,t1,[x,n,k,t1](std::shared_ptr<_dfloat>t0)
+			-> void{d_ifelsef(greateri(n,(int)(1)),t0,x,k);});});
 }
 
 std::shared_ptr<_dfloat> make__dfloat(double val, double dval) {
@@ -226,17 +220,11 @@ bool or_b(bool x, bool y) {
 	return (x) || (y);
 }
 
-void d_plussquare(std::shared_ptr<_dfloat> x, std::shared_ptr<_dfloat> y, const std::function<void(std::shared_ptr<_dfloat>)>& k) {
-	d_addf(x,y,[x,y,k](std::shared_ptr<_dfloat>t1)
-		-> void{d_addf(x,y,[x,y,k,t1](std::shared_ptr<_dfloat>t0)
-			-> void{d_mulf(t1,t0,k);});});
-}
-
 
 namespace py = pybind11;
 
 
-PYBIND11_MODULE(polynomial, m) {
+PYBIND11_MODULE(pow, m) {
     py::class_<_dfloat, std::shared_ptr<_dfloat>>(m, "_dfloat", py::module_local())
         .def(py::init<>())
         .def_readwrite("val", &_dfloat::val)
@@ -250,9 +238,8 @@ PYBIND11_MODULE(polynomial, m) {
           py::arg("val"),
           "Create a constant _dfloat (zero derivative).");
 
-    m.def("plussquare", &plussquare,py::arg("x"),py::arg("y"));
-    m.def("poly", &poly,py::arg("x"),py::arg("y"),py::arg("z"));
-    m.def("d_poly", &d_poly,py::arg("x"),py::arg("y"),py::arg("z"),py::arg("k"));
+    m.def("mypow", &mypow,py::arg("x"),py::arg("n"));
+    m.def("d_mypow", &d_mypow,py::arg("x"),py::arg("n"),py::arg("k"));
     m.def("make__dfloat", &make__dfloat,py::arg("val"),py::arg("dval"));
     m.def("make__const__dfloat", &make__const__dfloat,py::arg("val"));
     m.def("addf", &addf,py::arg("x"),py::arg("y"));
@@ -287,5 +274,4 @@ PYBIND11_MODULE(polynomial, m) {
     m.def("d_equalf", &d_equalf,py::arg("x"),py::arg("y"));
     m.def("and_b", &and_b,py::arg("x"),py::arg("y"));
     m.def("or_b", &or_b,py::arg("x"),py::arg("y"));
-    m.def("d_plussquare", &d_plussquare,py::arg("x"),py::arg("y"),py::arg("k"));
 }
