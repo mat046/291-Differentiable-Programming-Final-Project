@@ -2,8 +2,15 @@ import mlp
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# function to approximate
+def target_func(x):
+    return -x**2
+input_lower_bound = -5
+input_upper_bound = 5
+
 def train():
-    num_training_steps = 100
+    num_training_steps = 10000
 
     # hidden layer
     w_in_1 = mlp.make__dfloat(np.random.normal(), 0.0)
@@ -62,12 +69,6 @@ def train():
     ]
 
     b_out = mlp.make__dfloat(np.random.normal(), 0.0)
-
-    # function to approximate
-    def target_func(x):
-        return 1
-    input_lower_bound = -5
-    input_upper_bound = 5
 
     # plot
     x_axis = np.linspace(input_lower_bound, input_upper_bound, 100)
@@ -145,7 +146,7 @@ def train():
         for x in x_axis
     ]
 
-    plt.plot(x_axis, target)
+    plt.plot(x_axis, target, label='target')
     plt.plot(x_axis, init_result, label='init')
     plt.plot(x_axis, final_result, label='final')
     plt.legend()
