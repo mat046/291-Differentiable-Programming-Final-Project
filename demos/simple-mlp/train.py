@@ -1,11 +1,15 @@
 import mlp
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
 # function to approximate
 def target_func(x):
-    return -x**2
+    if x > 0:
+        return 3
+    else:
+        return 0
 input_lower_bound = -5
 input_upper_bound = 5
 
@@ -146,9 +150,10 @@ def train():
         for x in x_axis
     ]
 
-    plt.plot(x_axis, target, label='target')
-    plt.plot(x_axis, init_result, label='init')
-    plt.plot(x_axis, final_result, label='final')
+    plt.rcParams['font.size'] = 16
+    plt.plot(x_axis, target, label='Target Function')
+    plt.plot(x_axis, init_result, label='Initial Model')
+    plt.plot(x_axis, final_result, label='Final Model')
     plt.legend()
     plt.show()
 
